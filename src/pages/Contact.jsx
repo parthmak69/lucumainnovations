@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiMail, FiPhone, FiMapPin, FiSend, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
 import GradientBlobs from '../components/3d/GradientBlobs';
+import SpotlightCard from '../components/SpotlightCard';
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -133,44 +134,44 @@ export default function Contact() {
             </div>
 
             <div className="space-y-5">
-              <div className="flex items-start gap-4 p-5 rounded-2xl bg-card-light shadow-sm border border-gray-100/50">
-                <div className="w-10 h-10 rounded-xl bg-brand-purple-muted flex items-center justify-center text-brand-purple shrink-0">
+              <SpotlightCard spotlightColor="rgba(233, 69, 245, 0.15)" className="flex items-start gap-4 p-5">
+                <div className="w-10 h-10 rounded-xl bg-brand-purple-muted flex items-center justify-center text-brand-purple-accent shrink-0">
                   <FiMail className="text-lg" />
                 </div>
                 <div>
-                  <h4 className="font-heading font-bold text-sm text-text-primary">Send Email</h4>
+                  <h4 className="font-heading font-bold text-sm text-white">Send Email</h4>
                   <p className="text-xs text-text-secondary mt-1">hello@lucumatech.com</p>
                   <p className="text-xs text-text-secondary">support@lucumatech.com</p>
                 </div>
-              </div>
+              </SpotlightCard>
 
-              <div className="flex items-start gap-4 p-5 rounded-2xl bg-card-light shadow-sm border border-gray-100/50">
-                <div className="w-10 h-10 rounded-xl bg-brand-purple-muted flex items-center justify-center text-brand-purple shrink-0">
+              <SpotlightCard spotlightColor="rgba(124, 58, 237, 0.15)" className="flex items-start gap-4 p-5">
+                <div className="w-10 h-10 rounded-xl bg-brand-purple-muted flex items-center justify-center text-brand-purple-accent shrink-0">
                   <FiPhone className="text-lg" />
                 </div>
                 <div>
-                  <h4 className="font-heading font-bold text-sm text-text-primary">Call Founders</h4>
+                  <h4 className="font-heading font-bold text-sm text-white">Call Founders</h4>
                   <p className="text-xs text-text-secondary mt-1">+1 (555) 019-2831</p>
                   <p className="text-xs text-text-secondary">Mon - Fri: 8 AM - 6 PM PST</p>
                 </div>
-              </div>
+              </SpotlightCard>
 
-              <div className="flex items-start gap-4 p-5 rounded-2xl bg-card-light shadow-sm border border-gray-100/50">
-                <div className="w-10 h-10 rounded-xl bg-brand-purple-muted flex items-center justify-center text-brand-purple shrink-0">
+              <SpotlightCard spotlightColor="rgba(233, 69, 245, 0.15)" className="flex items-start gap-4 p-5">
+                <div className="w-10 h-10 rounded-xl bg-brand-purple-muted flex items-center justify-center text-brand-purple-accent shrink-0">
                   <FiMapPin className="text-lg" />
                 </div>
                 <div>
-                  <h4 className="font-heading font-bold text-sm text-text-primary">Development Hub</h4>
+                  <h4 className="font-heading font-bold text-sm text-white">Development Hub</h4>
                   <p className="text-xs text-text-secondary mt-1">Remote-first operations</p>
                   <p className="text-xs text-text-secondary">Silicon Valley, CA, USA</p>
                 </div>
-              </div>
+              </SpotlightCard>
             </div>
           </div>
 
           {/* Right Column: Neumorphic Contact Form */}
           <div className="lg:col-span-8">
-            <div className="neumorphic-card p-6 md:p-10 relative overflow-hidden bg-card-light">
+            <SpotlightCard spotlightColor="rgba(124, 58, 237, 0.2)" className="p-6 md:p-10 relative overflow-hidden">
               <form onSubmit={handleSubmit} className="space-y-6 text-left">
                 
                 {/* Row 1: Name and Email */}
@@ -342,7 +343,7 @@ export default function Contact() {
                   </button>
                 </div>
               </form>
-            </div>
+            </SpotlightCard>
           </div>
         </div>
       </section>

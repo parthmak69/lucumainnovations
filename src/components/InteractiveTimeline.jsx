@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { processSteps } from '../data/mockData';
+import SpotlightCard from './SpotlightCard';
 
 export default function InteractiveTimeline() {
   const containerVariants = {
@@ -58,7 +59,10 @@ export default function InteractiveTimeline() {
 
               {/* Content Card Panel */}
               <div className="w-full sm:w-[45%] pl-12 sm:pl-0">
-                <div className="neumorphic-card p-6 md:p-8 relative overflow-hidden group hover:border-brand-purple/20 transition-all duration-300">
+                <SpotlightCard
+                  spotlightColor="rgba(124, 58, 237, 0.25)"
+                  className="p-6 md:p-8 relative overflow-hidden group hover:border-brand-purple/20 transition-all duration-300"
+                >
                   {/* Decorative corner tag */}
                   <div className="absolute top-0 right-0 w-16 h-16 bg-brand-purple-muted rounded-bl-full flex items-center justify-center select-none">
                     <span className="font-heading font-bold text-sm text-brand-purple translate-x-2.5 -translate-y-2.5">
@@ -66,14 +70,14 @@ export default function InteractiveTimeline() {
                     </span>
                   </div>
 
-                  <h3 className="font-heading font-bold text-lg md:text-xl text-text-primary mb-3 group-hover:text-brand-purple transition-colors duration-300">
+                  <h3 className="font-heading font-bold text-lg md:text-xl text-white mb-3 group-hover:text-brand-purple-accent transition-colors duration-300">
                     {step.title}
                   </h3>
                   
                   <p className="text-sm md:text-base text-text-secondary leading-relaxed">
                     {step.description}
                   </p>
-                </div>
+                </SpotlightCard>
               </div>
             </motion.div>
           );

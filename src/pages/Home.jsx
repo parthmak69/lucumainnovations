@@ -1,346 +1,353 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { FiArrowRight, FiCheckCircle } from 'react-icons/fi';
-import { servicesData, whyChooseUsData, clientsData, statsData, testimonialsData } from '../data/mockData';
 import IsometricCube from '../components/3d/IsometricCube';
 import GradientBlobs from '../components/3d/GradientBlobs';
 import StatCounter from '../components/StatCounter';
 import InteractiveTimeline from '../components/InteractiveTimeline';
+import SpotlightCard from '../components/SpotlightCard';
+import { servicesData, whyChooseUsData, statsData, testimonialsData } from '../data/mockData';
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 40 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } },
+};
+
+const SPOTLIGHT_PINK   = 'rgba(233, 69, 245, 0.2)';
+const SPOTLIGHT_PURPLE = 'rgba(139, 92, 246, 0.2)';
+const SPOTLIGHT_DEEP   = 'rgba(109, 40, 217, 0.25)';
 
 export default function Home() {
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { type: 'spring', stiffness: 100, damping: 15 }
-    }
-  };
-
   return (
-    <div className="relative min-h-screen pt-24 overflow-hidden bg-bg-light">
-      {/* Background blobs for premium depth */}
-      <GradientBlobs />
+    <div className="overflow-hidden">
 
-      {/* ================= HERO SECTION ================= */}
-      <section className="relative max-w-7xl mx-auto px-6 py-12 md:py-20 lg:py-28 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center z-10">
-        <motion.div
-          className="lg:col-span-7 space-y-6 text-left"
-          initial={{ opacity: 0, x: -50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8, type: 'spring', bounce: 0.2 }}
-        >
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-purple-muted border border-brand-purple-light/20 text-brand-purple font-mono text-xs font-semibold tracking-wider">
-            <span className="w-2 h-2 rounded-full bg-brand-purple animate-pulse" />
-            INNOVATING DIGITAL HORIZONS
-          </div>
-          
-          <h1 className="font-heading font-extrabold text-4xl sm:text-5xl lg:text-6xl text-text-primary leading-[1.1] tracking-tight">
-            We Build Digital <br />
-            <span className="bg-gradient-to-r from-brand-purple via-brand-purple-light to-brand-purple-accent bg-clip-text text-transparent">
-              Experiences
-            </span> That <br />
-            Grow Businesses.
-          </h1>
+      {/* ══════════════════════════════════════════════════════════════
+          HERO
+      ══════════════════════════════════════════════════════════════ */}
+      <section className="relative min-h-screen flex items-center overflow-hidden">
+        <GradientBlobs />
 
-          <p className="text-base sm:text-lg text-text-secondary leading-relaxed max-w-xl">
-            Lucuma Tech is a cutting-edge software company specializing in custom web platforms, native mobile applications, and intelligent business automation systems.
-          </p>
+        <div className="relative z-10 max-w-7xl mx-auto px-6 py-24 flex flex-col lg:flex-row items-center gap-16">
 
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-4">
-            <Link
-              to="/get-started"
-              className="px-8 py-4 text-center btn-neumorphic-primary text-base font-bold shadow-lg"
+          {/* Copy */}
+          <motion.div
+            className="flex-1 text-center lg:text-left"
+            initial={{ opacity: 0, x: -40 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.7, ease: 'easeOut' }}
+          >
+            <motion.div
+              className="inline-flex items-center gap-2 bg-brand-purple-muted text-brand-purple-accent px-4 py-1.5 rounded-full text-xs font-semibold tracking-wider uppercase mb-6"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
             >
-              Start Your Project
-            </Link>
-            <Link
-              to="/services"
-              className="px-8 py-4 text-center btn-neumorphic text-base font-semibold border border-gray-200/50"
-            >
-              View Services
-            </Link>
-          </div>
-        </motion.div>
+              <span className="w-2 h-2 rounded-full bg-brand-purple-accent animate-pulse" />
+              Available for New Projects
+            </motion.div>
 
-        {/* 3D Cube Canvas Wrapper */}
-        <motion.div
-          className="lg:col-span-5 flex justify-center items-center relative"
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-        >
-          <div className="w-full flex justify-center py-6">
-            <IsometricCube />
-          </div>
-        </motion.div>
-      </section>
+            <h1 className="font-heading font-extrabold text-5xl sm:text-6xl lg:text-7xl text-white leading-[1.05] tracking-tight mb-6">
+              We Build
+              <span className="block text-brand-purple-accent">Digital Products</span>
+              <span className="block">That Scale.</span>
+            </h1>
 
-      {/* ================= CLIENTS LOGOS SECTION ================= */}
-      <section className="relative py-10 bg-bg-flat/30 border-y border-gray-200/40 z-10">
-        <div className="max-w-7xl mx-auto px-6">
-          <p className="text-xs font-heading font-semibold text-center text-text-secondary uppercase tracking-[0.25em] mb-8">
-            TRUSTED BY FORWARD-THINKING BRANDS
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-8 md:gap-16 opacity-75">
-            {clientsData.map((client) => (
-              <div
-                key={client.name}
-                className="group flex flex-col items-center select-none"
-              >
-                <span className="font-heading font-bold text-lg md:text-xl text-text-secondary grayscale group-hover:grayscale-0 group-hover:text-brand-purple group-hover:scale-105 transition-all duration-300">
-                  {client.logoText}
-                </span>
-                <span className="text-[10px] text-text-secondary uppercase tracking-[0.1em] mt-0.5 opacity-60">
-                  {client.industry}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ================= SERVICES SECTION ================= */}
-      <section className="relative max-w-7xl mx-auto px-6 py-20 z-10">
-        <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
-          <h2 className="font-heading font-extrabold text-3xl sm:text-4xl text-text-primary">
-            Our Core Services
-          </h2>
-          <p className="text-text-secondary text-base">
-            We deliver state-of-the-art solutions tailored to elevate your operational flow and increase user retention.
-          </p>
-        </div>
-
-        {/* Feature Cards (Show 6 primary) */}
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.1 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-        >
-          {servicesData.slice(0, 6).map((service) => {
-            const IconComponent = service.icon;
-            return (
-              <motion.div
-                key={service.id}
-                variants={itemVariants}
-                className="neumorphic-card p-8 flex flex-col text-left group hover:border-brand-purple/20 transition-all duration-300"
-              >
-                <div className="w-12 h-12 rounded-2xl bg-bg-light shadow-neumorphic-flat border border-gray-100 flex items-center justify-center text-brand-purple mb-6 group-hover:scale-110 group-hover:bg-brand-purple group-hover:text-white transition-all duration-300">
-                  <IconComponent className="text-xl" />
-                </div>
-                <h3 className="font-heading font-bold text-lg md:text-xl text-text-primary mb-3">
-                  {service.title}
-                </h3>
-                <p className="text-text-secondary text-sm md:text-base leading-relaxed mb-6 flex-grow">
-                  {service.description}
-                </p>
-                <Link
-                  to="/services"
-                  className="inline-flex items-center gap-2 text-sm font-semibold text-brand-purple group/link hover:text-brand-purple-light transition-colors"
-                >
-                  Learn More <FiArrowRight className="group-hover/link:translate-x-1 transition-transform" />
-                </Link>
-              </motion.div>
-            );
-          })}
-        </motion.div>
-      </section>
-
-      {/* ================= WHY CHOOSE US ================= */}
-      <section className="relative max-w-7xl mx-auto px-6 py-20 z-10 border-t border-gray-200/20">
-        <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
-          <h2 className="font-heading font-extrabold text-3xl sm:text-4xl text-text-primary">
-            Engineered For Excellence
-          </h2>
-          <p className="text-text-secondary text-base">
-            Why companies partner with Lucuma Tech to engineer their mission-critical applications.
-          </p>
-        </div>
-
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.1 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-        >
-          {whyChooseUsData.map((item, idx) => {
-            const IconComponent = item.icon;
-            return (
-              <motion.div
-                key={idx}
-                variants={itemVariants}
-                className="p-6 text-left neumorphic-card group border border-transparent hover:border-brand-purple/10"
-              >
-                <div className="flex gap-4">
-                  <div className="w-10 h-10 shrink-0 rounded-xl bg-brand-purple-muted flex items-center justify-center text-brand-purple font-bold">
-                    <IconComponent className="text-lg" />
-                  </div>
-                  <div className="space-y-2">
-                    <h4 className="font-heading font-bold text-base text-text-primary">
-                      {item.title}
-                    </h4>
-                    <p className="text-sm text-text-secondary leading-relaxed">
-                      {item.description}
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
-            );
-          })}
-        </motion.div>
-      </section>
-
-      {/* ================= PROCESS SECTION ================= */}
-      <section className="relative py-20 bg-bg-flat/25 border-y border-gray-200/30 z-10">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
-            <h2 className="font-heading font-extrabold text-3xl sm:text-4xl text-text-primary">
-              Our Development Process
-            </h2>
-            <p className="text-text-secondary text-base">
-              A structured, transparent roadmap from initial concept to launch day and beyond.
+            <p className="text-text-secondary text-lg leading-relaxed max-w-xl mx-auto lg:mx-0 mb-10">
+              Lucuma Innovation is a full-stack development studio crafting premium web apps,
+              mobile experiences, and cloud infrastructure for ambitious founders and
+              growing businesses worldwide.
             </p>
-          </div>
-          <InteractiveTimeline />
+
+            <div className="flex flex-wrap gap-4 justify-center lg:justify-start">
+              <Link to="/get-started" className="btn-neumorphic-primary flex items-center gap-2 px-8 py-4 text-base">
+                Start Your Project <FiArrowRight />
+              </Link>
+              <Link to="/services" className="btn-neumorphic flex items-center gap-2 px-8 py-4 text-base">
+                View Services
+              </Link>
+            </div>
+
+            <div className="flex flex-wrap gap-x-6 gap-y-2 justify-center lg:justify-start mt-10 text-sm text-text-secondary">
+              {['No upfront costs', 'Milestone-based payments', '30-day support guarantee'].map((t) => (
+                <span key={t} className="flex items-center gap-1.5">
+                  <FiCheckCircle className="text-brand-purple-accent" /> {t}
+                </span>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* 3D Cube */}
+          <motion.div
+            className="flex-shrink-0"
+            initial={{ opacity: 0, scale: 0.85 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, delay: 0.2, ease: 'easeOut' }}
+          >
+            <IsometricCube />
+          </motion.div>
         </div>
       </section>
 
-      {/* ================= STATS COUNTER SECTION ================= */}
-      <section className="relative max-w-7xl mx-auto px-6 py-20 z-10">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-          {statsData.map((stat, idx) => (
-            <div key={idx} className="p-8 neumorphic-card text-center flex flex-col justify-center items-center space-y-3">
-              <StatCounter value={stat.value} suffix={stat.suffix} />
-              <p className="text-sm font-semibold text-text-secondary tracking-wide uppercase">
-                {stat.label}
-              </p>
-            </div>
+      {/* ══════════════════════════════════════════════════════════════
+          STATS
+      ══════════════════════════════════════════════════════════════ */}
+      <section className="py-20">
+        <div className="max-w-5xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-5">
+          {statsData.map((stat, i) => (
+            <motion.div
+              key={stat.label}
+              variants={fadeUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ delay: i * 0.08 }}
+            >
+              <SpotlightCard spotlightColor={SPOTLIGHT_PINK} className="text-center h-full">
+                <StatCounter value={stat.value} suffix={stat.suffix} />
+                <p className="text-text-secondary text-sm mt-2 font-medium">{stat.label}</p>
+              </SpotlightCard>
+            </motion.div>
           ))}
         </div>
       </section>
 
-      {/* ================= TESTIMONIALS SECTION ================= */}
-      <section className="relative py-20 bg-bg-flat/20 border-t border-gray-200/20 z-10">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
-            <h2 className="font-heading font-extrabold text-3xl sm:text-4xl text-text-primary">
-              What Our Partners Say
+      {/* ══════════════════════════════════════════════════════════════
+          SERVICES PREVIEW
+      ══════════════════════════════════════════════════════════════ */}
+      <section className="relative py-24 overflow-hidden">
+        <GradientBlobs />
+        <div className="relative z-10 max-w-7xl mx-auto px-6">
+          <motion.div
+            className="text-center mb-16"
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
+            <span className="inline-block text-xs font-bold tracking-widest uppercase text-brand-purple-accent bg-brand-purple-muted px-4 py-1.5 rounded-full mb-4">
+              What We Do
+            </span>
+            <h2 className="font-heading font-extrabold text-4xl md:text-5xl text-white mb-4">
+              Services Built for Growth
             </h2>
-            <p className="text-text-secondary text-base">
-              Real feedback from companies that scaled their products with Lucuma Tech.
+            <p className="text-text-secondary text-lg max-w-2xl mx-auto">
+              From idea to deployment — we cover every layer of the modern tech stack.
             </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {servicesData.slice(0, 6).map((service, i) => {
+              const Icon = service.icon;
+              return (
+                <motion.div
+                  key={service.id}
+                  variants={fadeUp}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true, amount: 0.2 }}
+                  transition={{ delay: i * 0.07 }}
+                >
+                  <SpotlightCard spotlightColor={SPOTLIGHT_PURPLE} className="group h-full flex flex-col">
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-brand-purple-accent mb-6 transition-all duration-300 group-hover:scale-110"
+                      style={{ background: 'rgba(124,58,237,0.15)', border: '1px solid rgba(139,92,246,0.2)' }}
+                    >
+                      <Icon size={20} />
+                    </div>
+                    <h3 className="font-heading font-bold text-lg text-white mb-3 group-hover:text-brand-purple-accent transition-colors duration-300">
+                      {service.title}
+                    </h3>
+                    <p className="text-text-secondary text-sm leading-relaxed mb-4 flex-1">
+                      {service.description}
+                    </p>
+                    <Link
+                      to="/services"
+                      className="inline-flex items-center gap-1.5 text-brand-purple-accent text-sm font-semibold group/link"
+                    >
+                      Learn More <FiArrowRight className="group-hover/link:translate-x-1 transition-transform" />
+                    </Link>
+                  </SpotlightCard>
+                </motion.div>
+              );
+            })}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {testimonialsData.map((test) => (
-              <div key={test.id} className="p-8 neumorphic-card text-left flex flex-col justify-between group hover:border-brand-purple/10">
-                <div className="space-y-4">
+          <div className="text-center mt-12">
+            <Link to="/services" className="btn-neumorphic inline-flex items-center gap-2 px-8 py-4">
+              See All 12 Services <FiArrowRight />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════════
+          WHY CHOOSE US
+      ══════════════════════════════════════════════════════════════ */}
+      <section className="py-24">
+        <div className="max-w-7xl mx-auto px-6">
+          <motion.div
+            className="text-center mb-16"
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
+            <span className="inline-block text-xs font-bold tracking-widest uppercase text-brand-purple-accent bg-brand-purple-muted px-4 py-1.5 rounded-full mb-4">
+              Why Lucuma Innovation
+            </span>
+            <h2 className="font-heading font-extrabold text-4xl md:text-5xl text-white mb-4">
+              The Lucuma Difference
+            </h2>
+            <p className="text-text-secondary text-lg max-w-2xl mx-auto">
+              Young, passionate, and technically elite. We bring a rare combination of speed and quality.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {whyChooseUsData.map((item, i) => {
+              const Icon = item.icon;
+              return (
+                <motion.div
+                  key={item.title}
+                  variants={fadeUp}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true, amount: 0.2 }}
+                  transition={{ delay: i * 0.08 }}
+                >
+                  <SpotlightCard spotlightColor={SPOTLIGHT_PINK} className="h-full">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-purple to-brand-purple-light flex items-center justify-center text-white mb-5 shadow-lg">
+                      <Icon size={20} />
+                    </div>
+                    <h3 className="font-heading font-bold text-lg text-white mb-3">
+                      {item.title}
+                    </h3>
+                    <p className="text-text-secondary text-sm leading-relaxed">
+                      {item.description}
+                    </p>
+                  </SpotlightCard>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════════
+          PROCESS TIMELINE
+      ══════════════════════════════════════════════════════════════ */}
+      <section className="relative py-24 overflow-hidden">
+        <GradientBlobs />
+        <div className="relative z-10 max-w-7xl mx-auto px-6">
+          <motion.div
+            className="text-center mb-16"
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
+            <span className="inline-block text-xs font-bold tracking-widest uppercase text-brand-purple-accent bg-brand-purple-muted px-4 py-1.5 rounded-full mb-4">
+              Our Process
+            </span>
+            <h2 className="font-heading font-extrabold text-4xl md:text-5xl text-white mb-4">
+              How We Work
+            </h2>
+            <p className="text-text-secondary text-lg max-w-2xl mx-auto">
+              A transparent, milestone-driven process from first call to live launch.
+            </p>
+          </motion.div>
+          <InteractiveTimeline />
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════════
+          TESTIMONIALS
+      ══════════════════════════════════════════════════════════════ */}
+      <section className="py-24">
+        <div className="max-w-7xl mx-auto px-6">
+          <motion.div
+            className="text-center mb-16"
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
+            <span className="inline-block text-xs font-bold tracking-widest uppercase text-brand-purple-accent bg-brand-purple-muted px-4 py-1.5 rounded-full mb-4">
+              Client Stories
+            </span>
+            <h2 className="font-heading font-extrabold text-4xl md:text-5xl text-white mb-4">
+              What Our Clients Say
+            </h2>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {testimonialsData.map((t, i) => (
+              <motion.div
+                key={t.id}
+                variants={fadeUp}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ delay: i * 0.1 }}
+              >
+                <SpotlightCard spotlightColor={SPOTLIGHT_DEEP} className="h-full flex flex-col gap-5">
                   {/* Stars */}
-                  <div className="flex gap-1 text-yellow-500">
-                    {[...Array(test.rating)].map((_, i) => (
-                      <span key={i} className="text-lg">★</span>
+                  <div className="flex gap-1">
+                    {Array.from({ length: t.rating }).map((_, s) => (
+                      <span key={s} className="text-brand-purple-accent text-lg">★</span>
                     ))}
                   </div>
-                  <p className="text-text-secondary text-sm md:text-base italic leading-relaxed">
-                    "{test.quote}"
+                  <p className="text-text-secondary text-sm leading-relaxed flex-1 italic">
+                    "{t.quote}"
                   </p>
-                </div>
-                <div className="flex items-center gap-4 mt-8 pt-4 border-t border-gray-100">
-                  <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${test.avatarColor} flex items-center justify-center text-white font-bold font-heading text-sm`}>
-                    {test.name[0]}
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${t.avatarColor} flex items-center justify-center text-white font-bold text-sm flex-shrink-0`}>
+                      {t.name.charAt(0)}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-white text-sm">{t.name}</p>
+                      <p className="text-text-secondary text-xs">{t.role}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-heading font-bold text-sm text-text-primary">
-                      {test.name}
-                    </h4>
-                    <p className="text-xs text-text-secondary">
-                      {test.role}
-                    </p>
-                  </div>
-                </div>
-              </div>
+                </SpotlightCard>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ================= ABOUT TEASER SECTION ================= */}
-      <section className="relative max-w-7xl mx-auto px-6 py-20 z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-        <div className="space-y-6 text-left">
-          <h2 className="font-heading font-extrabold text-3xl sm:text-4xl text-text-primary">
-            Student Founders. Professional Standards.
-          </h2>
-          <p className="text-text-secondary text-base leading-relaxed">
-            Lucuma Tech was founded by two passionate 18-year-old student developers with an ambitious vision: proving that age does not limit engineering excellence.
-          </p>
-          <p className="text-text-secondary text-base leading-relaxed">
-            By combining deep curiosity with robust system design standards, we craft digital platforms that feel premium, perform at speed, and stand the test of traffic.
-          </p>
-          <div>
-            <Link
-              to="/about"
-              className="inline-flex items-center gap-2 px-6 py-3 btn-neumorphic font-semibold text-sm"
-            >
-              Read Our Story <FiArrowRight />
-            </Link>
-          </div>
-        </div>
-        <div className="relative flex justify-center items-center h-80 neumorphic-card p-8 bg-gradient-to-br from-brand-purple/5 to-transparent overflow-hidden border-gray-100">
-          <div className="absolute inset-0 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:16px_16px] opacity-40" />
-          
-          <div className="space-y-4 z-10 text-center">
-            <div className="w-16 h-16 rounded-full bg-brand-purple-muted text-brand-purple flex items-center justify-center mx-auto mb-4">
-              <FiCheckCircle className="text-3xl" />
-            </div>
-            <h4 className="font-heading font-extrabold text-xl text-text-primary">
-              Fresh Ideas. Modern Tech Stack.
-            </h4>
-            <p className="text-sm text-text-secondary max-w-sm leading-relaxed">
-              We leverage modern practices in CSS 3D, responsive designs, database orchestration, and cloud VPS architectures.
+      {/* ══════════════════════════════════════════════════════════════
+          CTA BANNER
+      ══════════════════════════════════════════════════════════════ */}
+      <section className="relative py-24 overflow-hidden">
+        <GradientBlobs />
+        <motion.div
+          className="relative z-10 max-w-4xl mx-auto px-6 text-center"
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
+          <SpotlightCard spotlightColor={SPOTLIGHT_PINK}>
+            <h2 className="font-heading font-extrabold text-4xl md:text-5xl text-white mb-6">
+              Ready to Build Something{' '}
+              <span className="text-brand-purple-accent">Extraordinary?</span>
+            </h2>
+            <p className="text-text-secondary text-lg mb-10 max-w-xl mx-auto leading-relaxed">
+              Tell us about your project and get a free consultation and detailed quote within 24 hours.
             </p>
-          </div>
-        </div>
+            <div className="flex flex-wrap gap-4 justify-center">
+              <Link to="/get-started" className="btn-neumorphic-primary flex items-center gap-2 px-10 py-4 text-base">
+                Get a Free Quote <FiArrowRight />
+              </Link>
+              <Link to="/contact" className="btn-neumorphic flex items-center gap-2 px-10 py-4 text-base">
+                Contact Us
+              </Link>
+            </div>
+          </SpotlightCard>
+        </motion.div>
       </section>
 
-      {/* ================= CTA BANNER SECTION ================= */}
-      <section className="relative max-w-7xl mx-auto px-6 py-16 mb-20 z-10">
-        <div className="p-8 md:p-12 lg:p-16 rounded-[32px] neumorphic-card bg-gradient-to-br from-white to-brand-purple-muted text-center space-y-6 relative overflow-hidden border-brand-purple/10">
-          <div className="absolute top-[-50%] right-[-10%] w-[350px] h-[350px] rounded-full bg-brand-purple/5 blur-3xl pointer-events-none" />
-
-          <h2 className="font-heading font-extrabold text-3xl sm:text-4xl lg:text-5xl text-text-primary tracking-tight">
-            Ready to Build Your Next Idea?
-          </h2>
-          <p className="text-text-secondary text-base max-w-xl mx-auto leading-relaxed">
-            Estimate your pricing configuration immediately using our interactive project calculator or schedule a strategic briefing session.
-          </p>
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-4 pt-4">
-            <Link
-              to="/get-started"
-              className="px-8 py-4 btn-neumorphic-primary text-base font-bold shadow-lg w-full sm:w-auto"
-            >
-              Start Estimator Tool
-            </Link>
-            <Link
-              to="/contact"
-              className="px-8 py-4 btn-neumorphic text-base font-semibold w-full sm:w-auto border-gray-200/50"
-            >
-              Contact Team
-            </Link>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { servicesData } from '../data/mockData';
 import { FiCheck, FiArrowRight, FiArrowLeft, FiCompass, FiBriefcase, FiDollarSign, FiClock, FiFileText, FiAward } from 'react-icons/fi';
 import GradientBlobs from '../components/3d/GradientBlobs';
+import SpotlightCard from '../components/SpotlightCard';
 
 export default function GetStarted() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -104,11 +105,11 @@ export default function GetStarted() {
 
       <div className="relative max-w-3xl w-full mx-auto px-6 z-10">
         {/* Onboarding Wizard Card */}
-        <div className="neumorphic-card p-6 md:p-10 bg-card-light overflow-hidden relative">
+        <SpotlightCard spotlightColor="rgba(124, 58, 237, 0.25)" className="p-6 md:p-10 overflow-hidden relative text-left">
           
           {/* Progress Indicators */}
           {!isSubmitted && (
-            <div className="flex justify-between items-center mb-8 border-b border-gray-200/30 pb-6">
+            <div className="flex justify-between items-center mb-8 border-b border-gray-800 pb-6">
               {[
                 { step: 1, label: 'Profile' },
                 { step: 2, label: 'Services' },
@@ -121,15 +122,15 @@ export default function GetStarted() {
                       currentStep === s.step
                         ? 'bg-brand-purple text-white shadow-sm'
                         : currentStep > s.step
-                        ? 'bg-brand-purple-muted text-brand-purple'
-                        : 'bg-bg-flat text-text-secondary'
+                        ? 'bg-brand-purple-muted text-brand-purple-accent'
+                        : 'bg-transparent border border-gray-800 text-text-secondary'
                     }`}
                   >
                     {currentStep > s.step ? '✓' : s.step}
                   </div>
                   <span
                     className={`hidden sm:inline text-xs font-heading font-semibold ${
-                      currentStep === s.step ? 'text-brand-purple' : 'text-text-secondary'
+                      currentStep === s.step ? 'text-brand-purple-accent' : 'text-text-secondary'
                     }`}
                   >
                     {s.label}
@@ -178,41 +179,41 @@ export default function GetStarted() {
                 {currentStep === 1 && (
                   <div className="space-y-5">
                     <div className="space-y-1">
-                      <h2 className="font-heading font-extrabold text-xl text-text-primary flex items-center gap-2">
-                        <FiCompass className="text-brand-purple" /> Tell Us About Yourself
+                      <h2 className="font-heading font-extrabold text-xl text-white flex items-center gap-2">
+                        <FiCompass className="text-brand-purple-accent animate-pulse" /> Tell Us About Yourself
                       </h2>
                       <p className="text-text-secondary text-xs">Let's get some basic context about you and your company.</p>
                     </div>
 
                     <div className="space-y-4 pt-2">
                       <div className="space-y-1.5">
-                        <label className="text-xs font-heading font-bold text-text-primary uppercase tracking-wider">Your Name *</label>
+                        <label className="text-xs font-heading font-bold text-white uppercase tracking-wider">Your Name *</label>
                         <input
                           type="text"
                           value={clientData.name}
                           onChange={(e) => setClientData({ ...clientData, name: e.target.value })}
                           placeholder="e.g. Liam Devlin"
-                          className="w-full p-4 rounded-xl text-sm border border-gray-200/50 bg-bg-light/30 focus:bg-white focus:outline-none focus:border-brand-purple/50 neumorphic-inset"
+                          className="w-full p-4 rounded-xl text-sm border border-gray-800 focus:outline-none focus:border-brand-purple-accent/50 bg-transparent text-white placeholder:text-white/20"
                         />
                       </div>
                       <div className="space-y-1.5">
-                        <label className="text-xs font-heading font-bold text-text-primary uppercase tracking-wider">Email Address *</label>
+                        <label className="text-xs font-heading font-bold text-white uppercase tracking-wider">Email Address *</label>
                         <input
                           type="email"
                           value={clientData.email}
                           onChange={(e) => setClientData({ ...clientData, email: e.target.value })}
                           placeholder="e.g. liam@company.com"
-                          className="w-full p-4 rounded-xl text-sm border border-gray-200/50 bg-bg-light/30 focus:bg-white focus:outline-none focus:border-brand-purple/50 neumorphic-inset"
+                          className="w-full p-4 rounded-xl text-sm border border-gray-800 focus:outline-none focus:border-brand-purple-accent/50 bg-transparent text-white placeholder:text-white/20"
                         />
                       </div>
                       <div className="space-y-1.5">
-                        <label className="text-xs font-heading font-bold text-text-primary uppercase tracking-wider">Company Name (Optional)</label>
+                        <label className="text-xs font-heading font-bold text-white uppercase tracking-wider">Company Name (Optional)</label>
                         <input
                           type="text"
                           value={clientData.company}
                           onChange={(e) => setClientData({ ...clientData, company: e.target.value })}
                           placeholder="e.g. Future Labs"
-                          className="w-full p-4 rounded-xl text-sm border border-gray-200/50 bg-bg-light/30 focus:bg-white focus:outline-none focus:border-brand-purple/50 neumorphic-inset"
+                          className="w-full p-4 rounded-xl text-sm border border-gray-800 focus:outline-none focus:border-brand-purple-accent/50 bg-transparent text-white placeholder:text-white/20"
                         />
                       </div>
                     </div>
@@ -223,8 +224,8 @@ export default function GetStarted() {
                 {currentStep === 2 && (
                   <div className="space-y-5">
                     <div className="space-y-1">
-                      <h2 className="font-heading font-extrabold text-xl text-text-primary flex items-center gap-2">
-                        <FiBriefcase className="text-brand-purple" /> Select Project Requirements
+                      <h2 className="font-heading font-extrabold text-xl text-white flex items-center gap-2">
+                        <FiBriefcase className="text-brand-purple-accent" /> Select Project Requirements
                       </h2>
                       <p className="text-text-secondary text-xs">Choose one or more capabilities you require from our team.</p>
                     </div>
@@ -238,18 +239,18 @@ export default function GetStarted() {
                             onClick={() => handleToggleService(s.id)}
                             className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
                               isSelected
-                                ? 'bg-brand-purple-muted border-brand-purple/40 text-brand-purple shadow-sm'
-                                : 'bg-transparent border-gray-200/50 hover:bg-bg-flat/20'
+                                ? 'bg-brand-purple-muted border-brand-purple/40 text-brand-purple-accent shadow-sm'
+                                : 'bg-transparent border-gray-800 hover:bg-white/5'
                             }`}
                           >
                             <input
                               type="checkbox"
                               checked={isSelected}
                               readOnly
-                              className="mt-1 accent-brand-purple pointer-events-none"
+                              className="mt-1 accent-brand-purple-accent pointer-events-none"
                             />
                             <div className="text-xs">
-                              <p className="font-bold text-text-primary">{s.title}</p>
+                              <p className="font-bold text-white">{s.title}</p>
                               <p className="text-[10px] text-text-secondary mt-0.5">${s.basePrice.toLocaleString()} base price</p>
                             </div>
                           </div>
@@ -263,15 +264,15 @@ export default function GetStarted() {
                 {currentStep === 3 && (
                   <div className="space-y-6">
                     <div className="space-y-1">
-                      <h2 className="font-heading font-extrabold text-xl text-text-primary flex items-center gap-2">
-                        <FiDollarSign className="text-brand-purple" /> Define Tier & Speed
+                      <h2 className="font-heading font-extrabold text-xl text-white flex items-center gap-2">
+                        <FiDollarSign className="text-brand-purple-accent" /> Define Tier & Speed
                       </h2>
                       <p className="text-text-secondary text-xs">Adjust complexity scale and delivery sprints parameters.</p>
                     </div>
-
+ 
                     {/* Project Tier */}
                     <div className="space-y-3 pt-2">
-                      <label className="text-xs font-heading font-bold text-text-primary uppercase tracking-wider">Project Tier</label>
+                      <label className="text-xs font-heading font-bold text-white uppercase tracking-wider">Project Tier</label>
                       <div className="grid grid-cols-3 gap-3">
                         {[
                           { id: 'mvp', label: 'MVP Release', desc: 'Core features (0.75x)' },
@@ -281,22 +282,22 @@ export default function GetStarted() {
                           <button
                             key={t.id}
                             onClick={() => setTier(t.id)}
-                            className={`p-4 rounded-xl border flex flex-col text-left transition-all ${
+                            className={`p-4 rounded-xl border flex flex-col text-left transition-all cursor-pointer ${
                               tier === t.id
-                                ? 'bg-brand-purple-muted border-brand-purple/40 text-brand-purple shadow-sm'
-                                : 'bg-transparent border-gray-200/50 hover:bg-bg-flat/20'
+                                ? 'bg-brand-purple-muted border-brand-purple/40 text-brand-purple-accent shadow-sm'
+                                : 'bg-transparent border-gray-800 hover:bg-white/5'
                             }`}
                           >
-                            <span className="font-bold text-xs text-text-primary">{t.label}</span>
+                            <span className="font-bold text-xs text-white">{t.label}</span>
                             <span className="text-[9px] text-text-secondary mt-1">{t.desc}</span>
                           </button>
                         ))}
                       </div>
                     </div>
-
+ 
                     {/* Timeline Speed */}
                     <div className="space-y-3">
-                      <label className="text-xs font-heading font-bold text-text-primary uppercase tracking-wider">Development Speed</label>
+                      <label className="text-xs font-heading font-bold text-white uppercase tracking-wider">Development Speed</label>
                       <div className="grid grid-cols-3 gap-3">
                         {[
                           { id: 'flexible', label: 'Flexible', desc: 'Relaxed sprints (0.95x cost)' },
@@ -306,13 +307,13 @@ export default function GetStarted() {
                           <button
                             key={sp.id}
                             onClick={() => setSpeed(sp.id)}
-                            className={`p-4 rounded-xl border flex flex-col text-left transition-all ${
+                            className={`p-4 rounded-xl border flex flex-col text-left transition-all cursor-pointer ${
                               speed === sp.id
-                                ? 'bg-brand-purple-muted border-brand-purple/40 text-brand-purple shadow-sm'
-                                : 'bg-transparent border-gray-200/50 hover:bg-bg-flat/20'
+                                ? 'bg-brand-purple-muted border-brand-purple/40 text-brand-purple-accent shadow-sm'
+                                : 'bg-transparent border-gray-800 hover:bg-white/5'
                             }`}
                           >
-                            <span className="font-bold text-xs text-text-primary">{sp.label}</span>
+                            <span className="font-bold text-xs text-white">{sp.label}</span>
                             <span className="text-[9px] text-text-secondary mt-1">{sp.desc}</span>
                           </button>
                         ))}
@@ -320,59 +321,59 @@ export default function GetStarted() {
                     </div>
                   </div>
                 )}
-
+ 
                 {/* Step 4: Summary Proposal */}
                 {currentStep === 4 && (
                   <div className="space-y-6">
                     <div className="space-y-1">
-                      <h2 className="font-heading font-extrabold text-xl text-text-primary flex items-center gap-2">
-                        <FiFileText className="text-brand-purple" /> Project Summary Review
+                      <h2 className="font-heading font-extrabold text-xl text-white flex items-center gap-2">
+                        <FiFileText className="text-brand-purple-accent" /> Project Summary Review
                       </h2>
                       <p className="text-text-secondary text-xs">Verify your selections and estimated values before submission.</p>
                     </div>
-
+ 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
                       {/* Left: Metadata details */}
                       <div className="space-y-4">
                         <div>
                           <p className="text-[10px] uppercase font-bold text-text-secondary">CLIENT REPRESENTATIVE</p>
-                          <p className="text-sm font-bold text-text-primary mt-0.5">{clientData.name}</p>
+                          <p className="text-sm font-bold text-white mt-0.5">{clientData.name}</p>
                           <p className="text-xs text-text-secondary">{clientData.email}</p>
                           {clientData.company && <p className="text-xs text-text-secondary">Company: {clientData.company}</p>}
                         </div>
-
+ 
                         <div>
                           <p className="text-[10px] uppercase font-bold text-text-secondary">TIER & DEVELOPMENT VELOCITY</p>
-                          <p className="text-sm font-bold text-text-primary mt-0.5">Tier: {tier.toUpperCase()}</p>
+                          <p className="text-sm font-bold text-white mt-0.5">Tier: {tier.toUpperCase()}</p>
                           <p className="text-xs text-text-secondary">Sprints: {speed.toUpperCase()}</p>
                         </div>
-
+ 
                         <div>
                           <p className="text-[10px] uppercase font-bold text-text-secondary">CAPABILITIES SELECTED</p>
                           <ul className="text-xs space-y-1 mt-1.5 max-h-28 overflow-y-auto pr-1">
                             {servicesData
                               .filter((s) => selectedServices.includes(s.id))
                               .map((s) => (
-                                <li key={s.id} className="flex items-center gap-1.5 font-medium text-text-primary">
-                                  <FiCheck className="text-brand-purple text-xs shrink-0" />
+                                <li key={s.id} className="flex items-center gap-1.5 font-medium text-white">
+                                  <FiCheck className="text-brand-purple-accent text-xs shrink-0" />
                                   {s.title}
                                 </li>
                               ))}
                           </ul>
                         </div>
                       </div>
-
+ 
                       {/* Right: Calculations box */}
                       <div className="p-6 rounded-2xl bg-brand-purple-muted/30 border border-brand-purple/10 flex flex-col justify-center space-y-5">
                         <div>
                           <p className="text-[10px] uppercase font-bold text-text-secondary">ESTIMATED PRICE RANGE</p>
-                          <p className="font-heading font-extrabold text-2xl sm:text-3xl text-brand-purple mt-1">
+                          <p className="font-heading font-extrabold text-2xl sm:text-3xl text-brand-purple-accent mt-1">
                             ${estimateResult.min.toLocaleString()} - ${estimateResult.max.toLocaleString()}
                           </p>
                         </div>
                         <div>
                           <p className="text-[10px] uppercase font-bold text-text-secondary">ESTIMATED TIMELINE</p>
-                          <p className="font-heading font-bold text-lg text-text-primary mt-0.5">
+                          <p className="font-heading font-bold text-lg text-white mt-0.5">
                             {estimateResult.weeks} Weeks
                           </p>
                         </div>
@@ -383,10 +384,10 @@ export default function GetStarted() {
               </div>
             )}
           </div>
-
+ 
           {/* Nav buttons footer */}
           {!isSubmitted && (
-            <div className="mt-8 pt-6 border-t border-gray-200/30 flex items-center justify-between">
+            <div className="mt-8 pt-6 border-t border-gray-800 flex items-center justify-between">
               {currentStep > 1 ? (
                 <button
                   onClick={prevStep}
@@ -397,11 +398,11 @@ export default function GetStarted() {
               ) : (
                 <div />
               )}
-
+ 
               {currentStep < 4 ? (
                 <button
                   onClick={nextStep}
-                  className="px-5 py-2.5 btn-neumorphic text-xs font-semibold flex items-center gap-2 text-brand-purple"
+                  className="px-5 py-2.5 btn-neumorphic text-xs font-semibold flex items-center gap-2 text-brand-purple-accent"
                 >
                   Continue <FiArrowRight />
                 </button>
@@ -415,8 +416,8 @@ export default function GetStarted() {
               )}
             </div>
           )}
-
-        </div>
+ 
+        </SpotlightCard>
       </div>
     </div>
   );

@@ -217,7 +217,7 @@ export const testimonialsData = [
     id: 1,
     name: 'Sarah Jenkins',
     role: 'CTO, Nova Systems',
-    quote: 'Lucuma Tech exceeded all our expectations. They took our legacy platform and completely rebuilt it into a lightning-fast React application. Their understanding of modern architectures is outstanding.',
+    quote: 'Lucuma Innovation exceeded all our expectations. They took our legacy platform and completely rebuilt it into a lightning-fast React application. Their understanding of modern architectures is outstanding.',
     rating: 5,
     avatarColor: 'from-violet-500 to-indigo-500'
   },
@@ -225,7 +225,7 @@ export const testimonialsData = [
     id: 2,
     name: 'Marcus Thorne',
     role: 'Founder, Future Labs',
-    quote: 'The team at Lucuma Tech shows an ambition and technical proficiency that rivals agencies ten times their size. They delivered our AI-dashboard two weeks ahead of schedule and the UI is incredibly polished.',
+    quote: 'The team at Lucuma Innovation shows an ambition and technical proficiency that rivals agencies ten times their size. They delivered our AI-dashboard two weeks ahead of schedule and the UI is incredibly polished.',
     rating: 5,
     avatarColor: 'from-fuchsia-500 to-purple-500'
   },

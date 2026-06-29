@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { servicesData } from '../data/mockData';
 import { FiCheck, FiInfo, FiSliders, FiFileText } from 'react-icons/fi';
 import GradientBlobs from '../components/3d/GradientBlobs';
+import SpotlightCard from '../components/SpotlightCard';
 
 export default function Services() {
   const [activeCategory, setActiveCategory] = useState('all');
@@ -85,7 +86,7 @@ export default function Services() {
       .map((s) => `  - ${s.title}`)
       .join('\n');
 
-    const summaryText = `LUCUMA TECH PROJECT ESTIMATE PROPOSAL
+    const summaryText = `LUCUMA INNOVATION PROJECT ESTIMATE PROPOSAL
 ---------------------------------------
 Selected Services:
 ${selectedNames}
@@ -158,51 +159,58 @@ Website: www.lucumatech.com
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.3 }}
                   key={service.id}
-                  className="neumorphic-card p-8 flex flex-col justify-between text-left group hover:border-brand-purple/20 transition-all duration-300"
+                  className="flex flex-col h-full"
                 >
-                  <div className="space-y-5">
-                    {/* Header Row */}
-                    <div className="flex items-center justify-between">
-                      <div className="w-12 h-12 rounded-2xl bg-bg-light shadow-neumorphic-flat border border-gray-100 flex items-center justify-center text-brand-purple group-hover:bg-brand-purple group-hover:text-white transition-all duration-300">
-                        <IconComponent className="text-xl" />
+                  <SpotlightCard
+                    spotlightColor="rgba(124, 58, 237, 0.25)"
+                    className="p-8 flex flex-col justify-between text-left group hover:border-brand-purple/20 transition-all duration-300 h-full"
+                  >
+                    <div className="space-y-5">
+                      {/* Header Row */}
+                      <div className="flex items-center justify-between">
+                        <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-brand-purple-accent group-hover:scale-110 transition-all duration-300"
+                          style={{ background: 'rgba(124,58,237,0.15)', border: '1px solid rgba(139,92,246,0.2)' }}
+                        >
+                          <IconComponent className="text-xl" />
+                        </div>
+                        <span className="text-xs font-semibold px-3 py-1 rounded-full bg-brand-purple-muted text-brand-purple-accent uppercase tracking-wider">
+                          {service.category}
+                        </span>
                       </div>
-                      <span className="text-xs font-semibold px-3 py-1 rounded-full bg-brand-purple-muted text-brand-purple uppercase tracking-wider">
-                        {service.category}
-                      </span>
+
+                      <div className="space-y-2">
+                        <h3 className="font-heading font-bold text-lg md:text-xl text-white group-hover:text-brand-purple-accent transition-colors duration-300">
+                          {service.title}
+                        </h3>
+                        <p className="text-text-secondary text-sm md:text-base leading-relaxed">
+                          {service.description}
+                        </p>
+                      </div>
+
+                      {/* Features checklist */}
+                      <ul className="space-y-2.5 pt-2">
+                        {service.features.map((feat, idx) => (
+                          <li key={idx} className="flex items-center gap-2 text-xs md:text-sm text-text-secondary">
+                            <FiCheck className="text-brand-purple-accent shrink-0" />
+                            <span>{feat}</span>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
 
-                    <div className="space-y-2">
-                      <h3 className="font-heading font-bold text-lg md:text-xl text-text-primary group-hover:text-brand-purple transition-colors duration-300">
-                        {service.title}
-                      </h3>
-                      <p className="text-text-secondary text-sm md:text-base leading-relaxed">
-                        {service.description}
-                      </p>
+                    <div className="mt-8 pt-4 border-t border-gray-800 flex items-center justify-between">
+                      <span className="text-xs text-text-secondary">Est: {service.timeframeWeeks} weeks</span>
+                      <button
+                        onClick={() => {
+                          handleToggleService(service.id);
+                          document.getElementById('estimator-section')?.scrollIntoView({ behavior: 'smooth' });
+                        }}
+                        className="px-4 py-1.5 rounded-full text-xs font-semibold border border-brand-purple/30 text-brand-purple-accent hover:bg-brand-purple hover:text-white transition-all cursor-pointer"
+                      >
+                        {selectedServices.includes(service.id) ? 'Selected' : 'Estimate Cost'}
+                      </button>
                     </div>
-
-                    {/* Features checklist */}
-                    <ul className="space-y-2.5 pt-2">
-                      {service.features.map((feat, idx) => (
-                        <li key={idx} className="flex items-center gap-2 text-xs md:text-sm text-text-secondary">
-                          <FiCheck className="text-brand-purple shrink-0" />
-                          <span>{feat}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <div className="mt-8 pt-4 border-t border-gray-100 flex items-center justify-between">
-                    <span className="text-xs text-text-secondary">Est: {service.timeframeWeeks} weeks</span>
-                    <button
-                      onClick={() => {
-                        handleToggleService(service.id);
-                        document.getElementById('estimator-section')?.scrollIntoView({ behavior: 'smooth' });
-                      }}
-                      className="px-4 py-1.5 rounded-full text-xs font-semibold border border-brand-purple/30 text-brand-purple hover:bg-brand-purple hover:text-white transition-all"
-                    >
-                      {selectedServices.includes(service.id) ? 'Selected' : 'Estimate Cost'}
-                    </button>
-                  </div>
+                  </SpotlightCard>
                 </motion.div>
               );
             })}
@@ -228,9 +236,9 @@ Website: www.lucumatech.com
           {/* Inputs Section */}
           <div className="lg:col-span-7 space-y-6">
             {/* Step 1: Select Services */}
-            <div className="neumorphic-card p-6 text-left">
-              <h3 className="font-heading font-bold text-base text-text-primary mb-4 flex items-center gap-2">
-                <span className="w-5 h-5 rounded-full bg-brand-purple-muted text-brand-purple text-xs font-bold flex items-center justify-center">1</span>
+            <SpotlightCard spotlightColor="rgba(233, 69, 245, 0.15)" className="p-6 text-left">
+              <h3 className="font-heading font-bold text-base text-white mb-4 flex items-center gap-2">
+                <span className="w-5 h-5 rounded-full bg-brand-purple-muted text-brand-purple-accent text-xs font-bold flex items-center justify-center">1</span>
                 Select Services Required
               </h3>
               
@@ -243,30 +251,30 @@ Website: www.lucumatech.com
                       onClick={() => handleToggleService(service.id)}
                       className={`flex items-start gap-3 p-3.5 rounded-xl border text-left cursor-pointer transition-all ${
                         isChecked
-                          ? 'bg-brand-purple-muted border-brand-purple/40 text-brand-purple shadow-sm'
-                          : 'bg-transparent border-gray-200/50 hover:bg-bg-flat/20'
+                          ? 'bg-brand-purple-muted border-brand-purple/40 text-brand-purple-accent shadow-sm'
+                          : 'bg-transparent border-gray-800 hover:bg-white/5'
                       }`}
                     >
                       <input
                         type="checkbox"
                         checked={isChecked}
                         readOnly
-                        className="mt-1 accent-brand-purple pointer-events-none"
+                        className="mt-1 accent-brand-purple-accent pointer-events-none"
                       />
                       <div className="text-xs">
-                        <p className="font-bold text-text-primary">{service.title}</p>
+                        <p className="font-bold text-white">{service.title}</p>
                         <p className="text-[10px] text-text-secondary mt-0.5">${service.basePrice.toLocaleString()} base</p>
                       </div>
                     </label>
                   );
                 })}
               </div>
-            </div>
+            </SpotlightCard>
 
             {/* Step 2: Project Scope */}
-            <div className="neumorphic-card p-6 text-left">
-              <h3 className="font-heading font-bold text-base text-text-primary mb-4 flex items-center gap-2">
-                <span className="w-5 h-5 rounded-full bg-brand-purple-muted text-brand-purple text-xs font-bold flex items-center justify-center">2</span>
+            <SpotlightCard spotlightColor="rgba(124, 58, 237, 0.15)" className="p-6 text-left">
+              <h3 className="font-heading font-bold text-base text-white mb-4 flex items-center gap-2">
+                <span className="w-5 h-5 rounded-full bg-brand-purple-muted text-brand-purple-accent text-xs font-bold flex items-center justify-center">2</span>
                 Choose Project Tier
               </h3>
               
@@ -279,23 +287,23 @@ Website: www.lucumatech.com
                   <button
                     key={tier.id}
                     onClick={() => setProjectScope(tier.id)}
-                    className={`p-4 rounded-xl border flex flex-col text-left transition-all ${
+                    className={`p-4 rounded-xl border flex flex-col text-left transition-all cursor-pointer ${
                       projectScope === tier.id
-                        ? 'bg-brand-purple-muted border-brand-purple/40 text-brand-purple shadow-sm'
-                        : 'bg-transparent border-gray-200/50 hover:bg-bg-flat/20'
+                        ? 'bg-brand-purple-muted border-brand-purple/40 text-brand-purple-accent shadow-sm'
+                        : 'bg-transparent border-gray-800 hover:bg-white/5'
                     }`}
                   >
-                    <span className="font-bold text-xs text-text-primary">{tier.label}</span>
+                    <span className="font-bold text-xs text-white">{tier.label}</span>
                     <span className="text-[9px] text-text-secondary mt-1">{tier.desc}</span>
                   </button>
                 ))}
               </div>
-            </div>
+            </SpotlightCard>
 
             {/* Step 3: Project Timeline */}
-            <div className="neumorphic-card p-6 text-left">
-              <h3 className="font-heading font-bold text-base text-text-primary mb-4 flex items-center gap-2">
-                <span className="w-5 h-5 rounded-full bg-brand-purple-muted text-brand-purple text-xs font-bold flex items-center justify-center">3</span>
+            <SpotlightCard spotlightColor="rgba(233, 69, 245, 0.15)" className="p-6 text-left">
+              <h3 className="font-heading font-bold text-base text-white mb-4 flex items-center gap-2">
+                <span className="w-5 h-5 rounded-full bg-brand-purple-muted text-brand-purple-accent text-xs font-bold flex items-center justify-center">3</span>
                 Select Development Speed
               </h3>
               
@@ -308,24 +316,27 @@ Website: www.lucumatech.com
                   <button
                     key={timeline.id}
                     onClick={() => setProjectTimeline(timeline.id)}
-                    className={`p-4 rounded-xl border flex flex-col text-left transition-all ${
+                    className={`p-4 rounded-xl border flex flex-col text-left transition-all cursor-pointer ${
                       projectTimeline === timeline.id
-                        ? 'bg-brand-purple-muted border-brand-purple/40 text-brand-purple shadow-sm'
-                        : 'bg-transparent border-gray-200/50 hover:bg-bg-flat/20'
+                        ? 'bg-brand-purple-muted border-brand-purple/40 text-brand-purple-accent shadow-sm'
+                        : 'bg-transparent border-gray-800 hover:bg-white/5'
                     }`}
                   >
-                    <span className="font-bold text-xs text-text-primary">{timeline.label}</span>
+                    <span className="font-bold text-xs text-white">{timeline.label}</span>
                     <span className="text-[9px] text-text-secondary mt-1">{timeline.desc}</span>
                   </button>
                 ))}
               </div>
-            </div>
+            </SpotlightCard>
           </div>
 
           {/* Results Summary Dashboard */}
           <div className="lg:col-span-5 lg:sticky lg:top-24">
-            <div className="p-8 rounded-[24px] neumorphic-card bg-gradient-to-br from-white to-brand-purple-muted/30 border-brand-purple/10 text-left space-y-6">
-              <h3 className="font-heading font-extrabold text-xl text-text-primary flex items-center gap-2">
+            <SpotlightCard
+              spotlightColor="rgba(124, 58, 237, 0.25)"
+              className="p-8 border-brand-purple/10 text-left space-y-6"
+            >
+              <h3 className="font-heading font-extrabold text-xl text-white flex items-center gap-2">
                 Estimate Summary
               </h3>
 
@@ -386,7 +397,7 @@ Website: www.lucumatech.com
                   </div>
                 </div>
               )}
-            </div>
+            </SpotlightCard>
           </div>
         </div>
       </section>

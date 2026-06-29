@@ -51,7 +51,7 @@ export default function Navbar() {
               <FiCode className="text-xl" />
             </div>
             <span className="font-heading font-extrabold text-xl tracking-tight text-text-primary group-hover:text-brand-purple transition-colors duration-300">
-              Lucuma <span className="text-brand-purple">Tech</span>
+              Lucuma <span className="text-brand-purple">Innovation</span>
             </span>
           </Link>
 

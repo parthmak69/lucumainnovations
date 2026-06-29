@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { FiCode, FiCpu, FiAward, FiBookOpen, FiActivity, FiBriefcase } from 'react-icons/fi';
 import GradientBlobs from '../components/3d/GradientBlobs';
+import SpotlightCard from '../components/SpotlightCard';
 
 const techStack = [
   { name: 'React', category: 'Frontend', level: 'Expert', color: 'bg-[#61DAFB]/10 text-[#61DAFB] border-[#61DAFB]/20' },
@@ -53,64 +54,67 @@ export default function About() {
             </span>
           </h1>
           <p className="text-text-secondary text-base sm:text-lg leading-relaxed max-w-2xl mx-auto">
-            Lucuma Tech was established with a singular focus: build robust software products while proving that passion, curiosity, and execution define capability far better than age.
+            Lucuma Innovation was established with a singular focus: build robust software products while proving that passion, curiosity, and execution define capability far better than age.
           </p>
         </div>
       </section>
 
       {/* ================= FOUNDERS PROFILE STORY ================= */}
       <section className="relative max-w-5xl mx-auto px-6 mb-20 z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center neumorphic-card p-8 md:p-12">
+        <SpotlightCard
+          spotlightColor="rgba(124, 58, 237, 0.2)"
+          className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center p-8 md:p-12 text-left"
+        >
           {/* Decorative left graphical layout */}
-          <div className="lg:col-span-5 relative flex justify-center items-center h-64 md:h-80 bg-gradient-to-br from-brand-purple/5 to-brand-purple-accent/5 rounded-2xl overflow-hidden border border-gray-100/60 shadow-inner">
-            <div className="absolute inset-0 bg-[radial-gradient(#6d28d9_1px,transparent_1px)] [background-size:20px_20px] opacity-15" />
+          <div className="lg:col-span-5 relative flex justify-center items-center h-64 md:h-80 bg-gradient-to-br from-brand-purple/5 to-brand-purple-accent/5 rounded-2xl overflow-hidden border border-gray-800 shadow-inner">
+            <div className="absolute inset-0 bg-[radial-gradient(#7c3aed_1px,transparent_1px)] [background-size:20px_20px] opacity-15" />
             <div className="relative space-y-3 text-center">
-              <div className="w-16 h-16 rounded-full bg-brand-purple-muted border border-brand-purple/20 text-brand-purple flex items-center justify-center mx-auto text-2xl font-bold">
+              <div className="w-16 h-16 rounded-full bg-brand-purple-muted border border-brand-purple/20 text-brand-purple-accent flex items-center justify-center mx-auto text-2xl font-bold">
                 2
               </div>
-              <p className="font-heading font-bold text-sm tracking-widest text-brand-purple uppercase">FOUNDERS</p>
+              <p className="font-heading font-bold text-sm tracking-widest text-brand-purple-accent uppercase">FOUNDERS</p>
               <p className="text-xs text-text-secondary font-mono">ESTD. SILICON VALLEY, CA</p>
             </div>
           </div>
 
           {/* Story Context */}
-          <div className="lg:col-span-7 space-y-6 text-left">
-            <h2 className="font-heading font-extrabold text-2xl md:text-3xl text-text-primary leading-tight">
+          <div className="lg:col-span-7 space-y-6">
+            <h2 className="font-heading font-extrabold text-2xl md:text-3xl text-white leading-tight">
               Our Origin Story
             </h2>
             
             <p className="text-text-secondary text-sm md:text-base leading-relaxed">
-              Founded by **two passionate 18-year-old student developers**, Lucuma Tech started as a collaborative coding lab. We spent our school terms building complex open-source modules, debugging servers, and developing custom templates. We soon realized that businesses were looking for exactly what we loved doing: fast, responsive, and cleanly engineered solutions.
+              Founded by **two passionate 18-year-old student developers**, Lucuma Innovation started as a collaborative coding lab. We spent our school terms building complex open-source modules, debugging servers, and developing custom templates. We soon realized that businesses were looking for exactly what we loved doing: fast, responsive, and cleanly engineered solutions.
             </p>
 
             <p className="text-text-secondary text-sm md:text-base leading-relaxed">
               Our youth represents our greatest strength: we are native to the modern web, unimpeded by outdated legacy structures, and possess an relentless appetite for technical innovation. We treat code as craftsmanship. Every database index is deliberate; every component is structured for reusability.
             </p>
 
-            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-100">
+            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-800">
               <div>
-                <h4 className="font-heading font-bold text-sm text-text-primary flex items-center gap-2">
-                  <FiCpu className="text-brand-purple shrink-0" />
+                <h4 className="font-heading font-bold text-sm text-white flex items-center gap-2">
+                  <FiCpu className="text-brand-purple-accent shrink-0" />
                   Agile Frameworks
                 </h4>
                 <p className="text-xs text-text-secondary mt-1">Clean react modules, styled Tailwind pages, and lightweight servers.</p>
               </div>
               <div>
-                <h4 className="font-heading font-bold text-sm text-text-primary flex items-center gap-2">
-                  <FiCode className="text-brand-purple shrink-0" />
+                <h4 className="font-heading font-bold text-sm text-white flex items-center gap-2">
+                  <FiCode className="text-brand-purple-accent shrink-0" />
                   24/7 Deployment
                 </h4>
                 <p className="text-xs text-text-secondary mt-1">Dedicated Git versioning workflows, CI/CD pipes, and automated cloud checks.</p>
               </div>
             </div>
           </div>
-        </div>
+        </SpotlightCard>
       </section>
 
       {/* ================= CORE VALUES GRID ================= */}
       <section className="relative max-w-7xl mx-auto px-6 mb-24 z-10">
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
-          <h2 className="font-heading font-extrabold text-3xl text-text-primary">
+          <h2 className="font-heading font-extrabold text-3xl text-white">
             Mission, Vision & Values
           </h2>
           <p className="text-text-secondary text-base">
@@ -126,36 +130,42 @@ export default function About() {
           className="grid grid-cols-1 md:grid-cols-3 gap-8"
         >
           {/* Mission Card */}
-          <motion.div variants={itemVariants} className="neumorphic-card p-8 text-left hover:border-brand-purple/10">
-            <div className="w-12 h-12 rounded-2xl bg-brand-purple-muted flex items-center justify-center text-brand-purple mb-6">
-              <FiAward className="text-2xl" />
-            </div>
-            <h3 className="font-heading font-bold text-lg md:text-xl text-text-primary mb-3">Our Mission</h3>
-            <p className="text-text-secondary text-sm md:text-base leading-relaxed">
-              To deliver premium-tier web, mobile, and server infrastructure solutions that optimize processes, empower developers, and accelerate business growth.
-            </p>
+          <motion.div variants={itemVariants}>
+            <SpotlightCard spotlightColor="rgba(233, 69, 245, 0.2)" className="h-full text-left">
+              <div className="w-12 h-12 rounded-2xl bg-brand-purple-muted flex items-center justify-center text-brand-purple-accent mb-6">
+                <FiAward className="text-2xl" />
+              </div>
+              <h3 className="font-heading font-bold text-lg md:text-xl text-white mb-3">Our Mission</h3>
+              <p className="text-text-secondary text-sm md:text-base leading-relaxed">
+                To deliver premium-tier web, mobile, and server infrastructure solutions that optimize processes, empower developers, and accelerate business growth.
+              </p>
+            </SpotlightCard>
           </motion.div>
 
           {/* Vision Card */}
-          <motion.div variants={itemVariants} className="neumorphic-card p-8 text-left hover:border-brand-purple/10">
-            <div className="w-12 h-12 rounded-2xl bg-brand-purple-muted flex items-center justify-center text-brand-purple mb-6">
-              <FiBookOpen className="text-2xl" />
-            </div>
-            <h3 className="font-heading font-bold text-lg md:text-xl text-text-primary mb-3">Our Vision</h3>
-            <p className="text-text-secondary text-sm md:text-base leading-relaxed">
-              To build a global developer agency led by fresh, motivated engineering talent, establishing that rigorous standards and curiosity dictate software success.
-            </p>
+          <motion.div variants={itemVariants}>
+            <SpotlightCard spotlightColor="rgba(124, 58, 237, 0.2)" className="h-full text-left">
+              <div className="w-12 h-12 rounded-2xl bg-brand-purple-muted flex items-center justify-center text-brand-purple-accent mb-6">
+                <FiBookOpen className="text-2xl" />
+              </div>
+              <h3 className="font-heading font-bold text-lg md:text-xl text-white mb-3">Our Vision</h3>
+              <p className="text-text-secondary text-sm md:text-base leading-relaxed">
+                To build a global developer agency led by fresh, motivated engineering talent, establishing that rigorous standards and curiosity dictate software success.
+              </p>
+            </SpotlightCard>
           </motion.div>
 
           {/* Values Card */}
-          <motion.div variants={itemVariants} className="neumorphic-card p-8 text-left hover:border-brand-purple/10">
-            <div className="w-12 h-12 rounded-2xl bg-brand-purple-muted flex items-center justify-center text-brand-purple mb-6">
-              <FiActivity className="text-2xl" />
-            </div>
-            <h3 className="font-heading font-bold text-lg md:text-xl text-text-primary mb-3">Our Values</h3>
-            <p className="text-text-secondary text-sm md:text-base leading-relaxed">
-              Craftsmanship first. Complete transparency in timeline estimations. Dedicated security measures. An endless commitment to learning.
-            </p>
+          <motion.div variants={itemVariants}>
+            <SpotlightCard spotlightColor="rgba(233, 69, 245, 0.2)" className="h-full text-left">
+              <div className="w-12 h-12 rounded-2xl bg-brand-purple-muted flex items-center justify-center text-brand-purple-accent mb-6">
+                <FiActivity className="text-2xl" />
+              </div>
+              <h3 className="font-heading font-bold text-lg md:text-xl text-white mb-3">Our Values</h3>
+              <p className="text-text-secondary text-sm md:text-base leading-relaxed">
+                Craftsmanship first. Complete transparency in timeline estimations. Dedicated security measures. An endless commitment to learning.
+              </p>
+            </SpotlightCard>
           </motion.div>
         </motion.div>
       </section>

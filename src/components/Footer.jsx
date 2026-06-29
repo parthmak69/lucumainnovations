@@ -25,7 +25,7 @@ export default function Footer() {
               <FiCode className="text-lg" />
             </div>
             <span className="font-heading font-extrabold text-lg tracking-tight text-text-primary">
-              Lucuma <span className="text-brand-purple">Tech</span>
+              Lucuma <span className="text-brand-purple">Innovation</span>
             </span>
           </Link>
           <p className="text-sm text-text-secondary leading-relaxed">
@@ -128,9 +128,9 @@ export default function Footer() {
       </div>
 
       <div className="max-w-7xl mx-auto px-6 pt-8 border-t border-gray-200/30 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-text-secondary">
-        <p>© {currentYear} Lucuma Tech. All rights reserved.</p>
+        <p>© {currentYear} Lucuma Innovation. All rights reserved.</p>
         <p className="flex items-center gap-1">
-          Made with <span className="text-red-500 animate-pulse">❤️</span> by Lucuma Tech
+          Made with <span className="text-red-500 animate-pulse">❤️</span> by Lucuma Innovation
         </p>
       </div>
     </footer>
