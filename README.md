@@ -1,6 +1,6 @@
-# Lucuma Tech - Modern Technology Startup Website
+# Lucuma Innovations - Modern Technology Startup Website
 
-Lucuma Tech is a premium-looking startup website built for a technology services provider. The application incorporates a hybrid design language combining **Soft UI Neumorphism**, **Glassmorphism**, and interactive **CSS 3D perspective transformations**. 
+Lucuma Innovations is a premium-looking startup website built for a technology services provider. The application incorporates a hybrid design language combining **Soft UI Neumorphism**, **Glassmorphism**, and interactive **CSS 3D perspective transformations**. 
 
 It is structured exactly like a MERN stack application (separating assets, components, layouts, hooks, pages, and mock data models) to support clean server-side integrations later.
 

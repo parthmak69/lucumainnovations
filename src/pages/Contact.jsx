@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiMail, FiPhone, FiMapPin, FiSend, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
 import GradientBlobs from '../components/3d/GradientBlobs';
@@ -140,8 +140,7 @@ export default function Contact() {
                 </div>
                 <div>
                   <h4 className="font-heading font-bold text-sm text-white">Send Email</h4>
-                  <p className="text-xs text-text-secondary mt-1">hello@lucumatech.com</p>
-                  <p className="text-xs text-text-secondary">support@lucumatech.com</p>
+                  <p className="text-xs text-text-secondary mt-1">contact@lucumainnovations.com</p>
                 </div>
               </SpotlightCard>
 
@@ -151,8 +150,9 @@ export default function Contact() {
                 </div>
                 <div>
                   <h4 className="font-heading font-bold text-sm text-white">Call Founders</h4>
-                  <p className="text-xs text-text-secondary mt-1">+1 (555) 019-2831</p>
-                  <p className="text-xs text-text-secondary">Mon - Fri: 8 AM - 6 PM PST</p>
+                  <p className="text-xs text-text-secondary mt-1">+91 77388 31706</p>
+                  <p className="text-xs text-text-secondary">+91 99300 80190</p>
+                  <p className="text-xs text-text-secondary">Mon - Fri: 10 AM - 9 PM IST</p>
                 </div>
               </SpotlightCard>
 
@@ -162,8 +162,7 @@ export default function Contact() {
                 </div>
                 <div>
                   <h4 className="font-heading font-bold text-sm text-white">Development Hub</h4>
-                  <p className="text-xs text-text-secondary mt-1">Remote-first operations</p>
-                  <p className="text-xs text-text-secondary">Silicon Valley, CA, USA</p>
+                  <p className="text-xs text-text-secondary">Mumbai, Maharashtra</p>
                 </div>
               </SpotlightCard>
             </div>
@@ -178,7 +177,7 @@ export default function Contact() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label htmlFor="name" className="text-xs font-heading font-bold text-text-primary uppercase tracking-wider">
-                      Your Name *
+                      Name*
                     </label>
                     <input
                       type="text"
@@ -186,7 +185,7 @@ export default function Contact() {
                       name="name"
                       value={formData.name}
                       onChange={handleInputChange}
-                      placeholder="e.g. John Doe"
+                      placeholder="Your Name"
                       className={`w-full p-4 rounded-xl text-sm border focus:outline-none transition-all ${
                         errors.name
                           ? 'border-red-400 bg-red-50/10 focus:ring-1 focus:ring-red-400'
@@ -202,7 +201,7 @@ export default function Contact() {
 
                   <div className="space-y-2">
                     <label htmlFor="email" className="text-xs font-heading font-bold text-text-primary uppercase tracking-wider">
-                      Email Address *
+                      Email*
                     </label>
                     <input
                       type="email"
@@ -210,7 +209,7 @@ export default function Contact() {
                       name="email"
                       value={formData.email}
                       onChange={handleInputChange}
-                      placeholder="e.g. john@company.com"
+                      placeholder="eg. you@example.com"
                       className={`w-full p-4 rounded-xl text-sm border focus:outline-none transition-all ${
                         errors.email
                           ? 'border-red-400 bg-red-50/10 focus:ring-1 focus:ring-red-400'

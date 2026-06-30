@@ -193,7 +193,7 @@ export default function Home() {
             viewport={{ once: true }}
           >
             <span className="inline-block text-xs font-bold tracking-widest uppercase text-brand-purple-accent bg-brand-purple-muted px-4 py-1.5 rounded-full mb-4">
-              Why Lucuma Innovation
+              Why Lucuma Innovations
             </span>
             <h2 className="font-heading font-extrabold text-4xl md:text-5xl text-white mb-4">
               The Lucuma Difference

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from './components/Navbar';
@@ -71,7 +71,7 @@ function App() {
                   <FiCode />
                 </div>
                 <h2 className="font-heading font-extrabold text-2xl tracking-tight text-white mt-6">
-                  Lucuma <span className="text-brand-purple-accent">Innovation</span>
+                  Lucuma <span className="text-brand-purple-accent">Innovations</span>
                 </h2>
                 <p className="text-[10px] text-white/50 font-mono tracking-[0.25em] mt-1.5 uppercase">
                   Developing Future Systems
