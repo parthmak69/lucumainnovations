@@ -25,7 +25,7 @@ export default function Footer() {
               <FiCode className="text-lg" />
             </div>
             <span className="font-heading font-extrabold text-lg tracking-tight text-text-primary">
-              Lucuma <span className="text-brand-purple">Innovation</span>
+              Lucuma <span className="text-brand-purple">Innovations</span>
             </span>
           </Link>
           <p className="text-sm text-text-secondary leading-relaxed">
@@ -113,26 +113,23 @@ export default function Footer() {
           <ul className="space-y-4 text-sm text-text-secondary">
             <li className="flex items-start gap-3">
               <FiMail className="mt-1 text-brand-purple text-base shrink-0" />
-              <span>hello@lucumatech.com</span>
+              <span>contact@lucumainnovations.com</span>
             </li>
             <li className="flex items-start gap-3">
               <FiPhone className="mt-1 text-brand-purple text-base shrink-0" />
-              <span>+1 (555) 019-2831</span>
+              <span>+91 77388 31706 / +91 99300 80190</span>
             </li>
             <li className="flex items-start gap-3">
               <FiMapPin className="mt-1 text-brand-purple text-base shrink-0" />
-              <span>Remote / Silicon Valley, CA</span>
+              <span>Mumbai, Maharashtra</span>
             </li>
           </ul>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 pt-8 border-t border-gray-200/30 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-text-secondary">
-        <p>© {currentYear} Lucuma Innovation. All rights reserved.</p>
-        <p className="flex items-center gap-1">
-          Made with <span className="text-red-500 animate-pulse">❤️</span> by Lucuma Innovation
-        </p>
-      </div>
+     <div className="max-w-7xl mx-auto px-6 pt-8 border-t border-gray-200/30 flex flex-col sm:flex-row items-center justify-center gap-4 text-xs text-text-secondary text-center">
+  <p>© {currentYear} Lucuma Innovations. All rights reserved.</p>
+</div>
     </footer>
   );
 }
