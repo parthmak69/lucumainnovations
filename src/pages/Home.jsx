@@ -2,11 +2,12 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { FiArrowRight, FiCheckCircle } from 'react-icons/fi';
-import IsometricCube from '../components/3d/IsometricCube';
+import InteractiveLogo from '../components/InteractiveLogo';
 import GradientBlobs from '../components/3d/GradientBlobs';
 import StatCounter from '../components/StatCounter';
 import InteractiveTimeline from '../components/InteractiveTimeline';
 import SpotlightCard from '../components/SpotlightCard';
+import BlurText from '../components/BlurText';
 import { servicesData, whyChooseUsData, statsData, testimonialsData } from '../data/mockData';
 
 const fadeUp = {
@@ -48,16 +49,22 @@ export default function Home() {
             </motion.div>
 
             <h1 className="font-heading font-extrabold text-5xl sm:text-6xl lg:text-7xl text-white leading-[1.05] tracking-tight mb-6">
-              We Build
-              <span className="block text-brand-purple-accent">Digital Products</span>
-              <span className="block">That Scale.</span>
+              <BlurText 
+                text="Ideas deserve more than code. They deserve innovation."
+                delay={150}
+                animateBy="words"
+                direction="top"
+                className="justify-center lg:justify-start text-center lg:text-left"
+              />
             </h1>
 
-            <p className="text-text-secondary text-lg leading-relaxed max-w-xl mx-auto lg:mx-0 mb-10">
-              Lucuma Innovation is a full-stack development studio crafting premium web apps,
-              mobile experiences, and cloud infrastructure for ambitious founders and
-              growing businesses worldwide.
-            </p>
+            <BlurText
+              text="Lucuma Innovation is a full-stack development studio crafting premium web apps, mobile experiences, and cloud infrastructure for ambitious founders and growing businesses worldwide."
+              delay={25}
+              animateBy="words"
+              direction="bottom"
+              className="text-text-secondary text-lg leading-relaxed max-w-xl mx-auto lg:mx-0 mb-10 justify-center lg:justify-start text-center lg:text-left"
+            />
 
             <div className="flex flex-wrap gap-4 justify-center lg:justify-start">
               <Link to="/get-started" className="btn-neumorphic-primary flex items-center gap-2 px-8 py-4 text-base">
@@ -79,12 +86,12 @@ export default function Home() {
 
           {/* 3D Cube */}
           <motion.div
-            className="flex-shrink-0"
+            className="flex-shrink-0 lg:-mt-20"
             initial={{ opacity: 0, scale: 0.85 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.2, ease: 'easeOut' }}
           >
-            <IsometricCube />
+            <InteractiveLogo />
           </motion.div>
         </div>
       </section>

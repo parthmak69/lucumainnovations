@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FiCode, FiGithub, FiTwitter, FiLinkedin, FiInstagram, FiMail, FiMapPin, FiPhone } from 'react-icons/fi';
+import { FiGithub, FiTwitter, FiLinkedin, FiInstagram, FiMail, FiMapPin, FiPhone } from 'react-icons/fi';
+import logoUrl from '../assets/logo.png';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -21,8 +22,8 @@ export default function Footer() {
         {/* Brand Block */}
         <div className="space-y-4">
           <Link to="/" className="flex items-center gap-2 group">
-            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-brand-purple to-brand-purple-light flex items-center justify-center text-white shadow-sm">
-              <FiCode className="text-lg" />
+            <div className="w-9 h-9 flex items-center justify-center shadow-sm">
+              <img src={logoUrl} alt="Lucuma Innovations logo" className="w-full h-full object-contain" />
             </div>
             <span className="font-heading font-extrabold text-lg tracking-tight text-text-primary">
               Lucuma <span className="text-brand-purple">Innovations</span>

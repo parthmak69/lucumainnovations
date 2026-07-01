@@ -189,7 +189,7 @@ export default function Contact() {
                       className={`w-full p-4 rounded-xl text-sm border focus:outline-none transition-all ${
                         errors.name
                           ? 'border-red-400 bg-red-50/10 focus:ring-1 focus:ring-red-400'
-                          : 'border-gray-200/50 focus:border-brand-purple/50 bg-bg-light/30 focus:bg-white neumorphic-inset'
+                          : 'border-gray-800 focus:border-brand-purple-accent/50 bg-[#130b24]/40 focus:bg-[#130b24]/85 text-white placeholder:text-white/30'
                       }`}
                     />
                     {errors.name && (
@@ -213,7 +213,7 @@ export default function Contact() {
                       className={`w-full p-4 rounded-xl text-sm border focus:outline-none transition-all ${
                         errors.email
                           ? 'border-red-400 bg-red-50/10 focus:ring-1 focus:ring-red-400'
-                          : 'border-gray-200/50 focus:border-brand-purple/50 bg-bg-light/30 focus:bg-white neumorphic-inset'
+                          : 'border-gray-800 focus:border-brand-purple-accent/50 bg-[#130b24]/40 focus:bg-[#130b24]/85 text-white placeholder:text-white/30'
                       }`}
                     />
                     {errors.email && (
@@ -240,7 +240,7 @@ export default function Contact() {
                       className={`w-full p-4 rounded-xl text-sm border focus:outline-none transition-all ${
                         errors.phone
                           ? 'border-red-400 bg-red-50/10 focus:ring-1 focus:ring-red-400'
-                          : 'border-gray-200/50 focus:border-brand-purple/50 bg-bg-light/30 focus:bg-white neumorphic-inset'
+                          : 'border-gray-800 focus:border-brand-purple-accent/50 bg-[#130b24]/40 focus:bg-[#130b24]/85 text-white placeholder:text-white/30'
                       }`}
                     />
                     {errors.phone && (
@@ -260,10 +260,10 @@ export default function Contact() {
                         name="projectType"
                         value={formData.projectType}
                         onChange={handleInputChange}
-                        className="w-full p-4 rounded-xl text-sm border border-gray-200/50 focus:border-brand-purple/50 focus:outline-none bg-bg-light/30 focus:bg-white appearance-none cursor-pointer neumorphic-inset"
+                        className="w-full p-4 rounded-xl text-sm border border-gray-800 focus:border-brand-purple-accent/50 focus:outline-none bg-[#130b24]/40 focus:bg-[#130b24]/85 text-white appearance-none cursor-pointer"
                       >
                         {projectOptions.map((opt) => (
-                          <option key={opt.value} value={opt.value}>
+                          <option key={opt.value} value={opt.value} className="bg-[#130b24] text-white">
                             {opt.label}
                           </option>
                         ))}
@@ -286,10 +286,10 @@ export default function Contact() {
                       name="budget"
                       value={formData.budget}
                       onChange={handleInputChange}
-                      className="w-full p-4 rounded-xl text-sm border border-gray-200/50 focus:border-brand-purple/50 focus:outline-none bg-bg-light/30 focus:bg-white appearance-none cursor-pointer neumorphic-inset"
+                      className="w-full p-4 rounded-xl text-sm border border-gray-800 focus:border-brand-purple-accent/50 focus:outline-none bg-[#130b24]/40 focus:bg-[#130b24]/85 text-white appearance-none cursor-pointer"
                     >
                       {budgetOptions.map((opt) => (
-                        <option key={opt.value} value={opt.value}>
+                        <option key={opt.value} value={opt.value} className="bg-[#130b24] text-white">
                           {opt.label}
                         </option>
                       ))}
@@ -315,7 +315,7 @@ export default function Contact() {
                     className={`w-full p-4 rounded-xl text-sm border focus:outline-none transition-all resize-none ${
                       errors.message
                         ? 'border-red-400 bg-red-50/10 focus:ring-1 focus:ring-red-400'
-                        : 'border-gray-200/50 focus:border-brand-purple/50 bg-bg-light/30 focus:bg-white neumorphic-inset'
+                        : 'border-gray-800 focus:border-brand-purple-accent/50 bg-[#130b24]/40 focus:bg-[#130b24]/85 text-white placeholder:text-white/30'
                     }`}
                   />
                   {errors.message && (

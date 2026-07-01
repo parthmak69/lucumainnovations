@@ -84,7 +84,7 @@ export default function About() {
             </h2>
             
             <p className="text-text-secondary text-sm md:text-base leading-relaxed">
-              Founded by **two passionate 18-year-old student developers**, Lucuma Innovations started as a collaborative coding lab. We spent our school terms building complex open-source modules, debugging servers, and developing custom templates. We soon realized that businesses were looking for exactly what we loved doing: fast, responsive, and cleanly engineered solutions.
+              Founded by two passionate 18-year-old student developers, Lucuma Innovations started as a collaborative coding lab. We spent our school terms building complex open-source modules, debugging servers, and developing custom templates. We soon realized that businesses were looking for exactly what we loved doing: fast, responsive, and cleanly engineered solutions.
             </p>
 
             <p className="text-text-secondary text-sm md:text-base leading-relaxed">

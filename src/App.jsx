@@ -9,7 +9,7 @@ import Services from './pages/Services';
 import About from './pages/About';
 import Contact from './pages/Contact';
 import GetStarted from './pages/GetStarted';
-import { FiCode } from 'react-icons/fi';
+import logoUrl from './assets/logo.png';
 
 // Scroll resetting component on route navigation change
 function ScrollToTop() {
@@ -24,10 +24,10 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const preloaderTimer = setTimeout(() => {
+    const timer = setTimeout(() => {
       setLoading(false);
-    }, 1500);
-    return () => clearTimeout(preloaderTimer);
+    }, 1300);
+    return () => clearTimeout(timer);
   }, []);
 
   return (
@@ -48,10 +48,9 @@ function App() {
           linesGradient={['#e945f5', '#6f6f6f', '#6a6a6a']}
           mixBlendMode="normal"
         />
-        {/* Dark overlay to reduce background glare and increase text contrast */}
         <div 
           className="absolute inset-0 pointer-events-none" 
-          style={{ background: 'rgba(8, 2, 16, 0.72)' }} 
+          style={{ background: 'rgba(5, 1, 10, 0.88)' }} 
         />
       </div>
 
@@ -67,10 +66,33 @@ function App() {
               transition={{ duration: 0.4, ease: 'easeInOut' }}
             >
               <div className="relative flex flex-col items-center">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-purple to-brand-purple-light flex items-center justify-center text-white text-3xl shadow-lg animate-float-medium">
-                  <FiCode />
+                <div className="relative w-24 h-24 flex items-center justify-center mb-6 overflow-hidden">
+                  <img src={logoUrl} alt="Lucuma Innovations logo" className="w-full h-full object-contain" />
+                  <motion.div
+                    className="absolute inset-0 pointer-events-none"
+                    initial={{ x: '-150%', y: '-150%' }}
+                    animate={{ x: '150%', y: '150%' }}
+                    transition={{
+                      delay: 0.2,
+                      duration: 0.85,
+                      ease: 'easeInOut',
+                      repeat: Infinity,
+                      repeatDelay: 1.8
+                    }}
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(255,255,255,0) 35%, rgba(255,255,255,0.06) 46%, rgba(255,255,255,0.18) 50%, rgba(255,255,255,0.06) 54%, rgba(255,255,255,0) 65%)',
+                      maskImage: `url(${logoUrl})`,
+                      WebkitMaskImage: `url(${logoUrl})`,
+                      maskSize: 'contain',
+                      WebkitMaskSize: 'contain',
+                      maskRepeat: 'no-repeat',
+                      WebkitMaskRepeat: 'no-repeat',
+                      maskPosition: 'center',
+                      WebkitMaskPosition: 'center',
+                    }}
+                  />
                 </div>
-                <h2 className="font-heading font-extrabold text-2xl tracking-tight text-white mt-6">
+                <h2 className="font-heading font-extrabold text-2xl tracking-tight text-white">
                   Lucuma <span className="text-brand-purple-accent">Innovations</span>
                 </h2>
                 <p className="text-[10px] text-white/50 font-mono tracking-[0.25em] mt-1.5 uppercase">

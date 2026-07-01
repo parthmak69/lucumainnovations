@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiMenu, FiX, FiCode } from 'react-icons/fi';
+import { FiMenu, FiX } from 'react-icons/fi';
+import logoUrl from '../assets/logo.png';
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -47,8 +48,8 @@ export default function Navbar() {
             to="/"
             className="flex items-center gap-2 group focus:outline-none"
           >
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-purple to-brand-purple-light flex items-center justify-center text-white shadow-md transform group-hover:scale-105 transition-transform duration-300">
-              <FiCode className="text-xl" />
+            <div className="w-10 h-10 flex items-center justify-center transform group-hover:scale-105 transition-transform duration-300">
+              <img src={logoUrl} alt="Lucuma Innovations logo" className="w-full h-full object-contain" />
             </div>
             <span className="font-heading font-extrabold text-xl tracking-tight text-text-primary group-hover:text-brand-purple transition-colors duration-300">
               Lucuma <span className="text-brand-purple">Innovations</span>
