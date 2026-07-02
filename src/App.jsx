@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import FloatingLines from './components/FloatingLines';
@@ -33,6 +34,7 @@ function App() {
   return (
     <Router>
       <ScrollToTop />
+      <SpeedInsights />
 
       {/* ── Fixed WebGL Background (behind everything) ── */}
       <div className="fixed inset-0" style={{ zIndex: 0 }}>
