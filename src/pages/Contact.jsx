@@ -9,8 +9,8 @@ export default function Contact() {
     name: '',
     email: '',
     phone: '',
-    projectType: 'web-dev',
-    budget: '3k-5k',
+    projectType: 'defopt',
+    budget: 'defopt',
     message: ''
   });
 
@@ -19,6 +19,7 @@ export default function Contact() {
   const [isSuccess, setIsSuccess] = useState(false);
 
   const projectOptions = [
+    { value: 'defopt', label: 'Select a project type' },
     { value: 'web-dev', label: 'Custom Web Development' },
     { value: 'mobile-android', label: 'Android Application' },
     { value: 'mobile-ios', label: 'iOS Application' },
@@ -27,10 +28,12 @@ export default function Contact() {
     { value: 'cloud-hosting', label: 'Cloud Hosting & Servers' },
     { value: 'maintenance', label: 'Website Maintenance' },
     { value: 'optimization', label: 'Performance Optimization' },
-    { value: 'automation', label: 'Business Automation' }
+    { value: 'automation', label: 'Business Automation' },
+    { value: 'other', label: 'Others / Custom Request' }
   ];
 
   const budgetOptions = [
+    { value: 'defopt', label: 'Select a price range' },
     { value: 'under-3k', label: 'Under $3,000' },
     { value: '3k-5k', label: '$3,000 - $5,000' },
     { value: '5k-10k', label: '$5,000 - $10,000' },
@@ -42,17 +45,17 @@ export default function Contact() {
   const validateForm = () => {
     const tempErrors = {};
     if (!formData.name.trim()) tempErrors.name = 'Name is required.';
-    
+
     if (!formData.email.trim()) {
       tempErrors.email = 'Email is required.';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       tempErrors.email = 'Email is invalid.';
     }
-    
+
     if (formData.phone.trim() && !/^\+?[0-9\s-]{7,15}$/.test(formData.phone)) {
       tempErrors.phone = 'Phone number is invalid.';
     }
-    
+
     if (!formData.message.trim()) {
       tempErrors.message = 'Please write a brief description of your project.';
     } else if (formData.message.trim().length < 20) {
@@ -83,7 +86,7 @@ export default function Contact() {
     if (!validateForm()) return;
 
     setIsSubmitting(true);
-    
+
     // Mock server latency
     setTimeout(() => {
       setIsSubmitting(false);
@@ -92,8 +95,8 @@ export default function Contact() {
         name: '',
         email: '',
         phone: '',
-        projectType: 'web-dev',
-        budget: '3k-5k',
+        projectType: 'defopt',
+        budget: 'defopt',
         message: ''
       });
     }, 1800);
@@ -121,7 +124,7 @@ export default function Contact() {
       {/* ================= CONTACT SECTION CONTENT ================= */}
       <section className="relative max-w-6xl mx-auto px-6 z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-          
+
           {/* Left Column: Direct Info Panel */}
           <div className="lg:col-span-4 space-y-8 lg:sticky lg:top-28 text-left">
             <div className="space-y-4">
@@ -140,7 +143,7 @@ export default function Contact() {
                 </div>
                 <div>
                   <h4 className="font-heading font-bold text-sm text-white">Send Email</h4>
-                  <p className="text-xs text-text-secondary mt-1">contact@lucumainnovations.com</p>
+                  <p className="text-xs text-text-secondary mt-1">info@lucumainnovations.com</p>
                 </div>
               </SpotlightCard>
 
@@ -150,8 +153,9 @@ export default function Contact() {
                 </div>
                 <div>
                   <h4 className="font-heading font-bold text-sm text-white">Call Founders</h4>
-                  <p className="text-xs text-text-secondary mt-1">+91 77388 31706</p>
-                  <p className="text-xs text-text-secondary">+91 99300 80190</p>
+                  <p className="text-xs text-text-secondary">+91 99300 80190 (Founder)</p>
+                  <p className="text-xs text-text-secondary mt-1">+91 77388 31706 (Co-Founder)</p>
+
                   <p className="text-xs text-text-secondary">Mon - Fri: 10 AM - 9 PM IST</p>
                 </div>
               </SpotlightCard>
@@ -172,7 +176,7 @@ export default function Contact() {
           <div className="lg:col-span-8">
             <SpotlightCard spotlightColor="rgba(124, 58, 237, 0.2)" className="p-6 md:p-10 relative overflow-hidden">
               <form onSubmit={handleSubmit} className="space-y-6 text-left">
-                
+
                 {/* Row 1: Name and Email */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
@@ -186,11 +190,10 @@ export default function Contact() {
                       value={formData.name}
                       onChange={handleInputChange}
                       placeholder="Your Name"
-                      className={`w-full p-4 rounded-xl text-sm border focus:outline-none transition-all ${
-                        errors.name
-                          ? 'border-red-400 bg-red-50/10 focus:ring-1 focus:ring-red-400'
-                          : 'border-gray-800 focus:border-brand-purple-accent/50 bg-[#130b24]/40 focus:bg-[#130b24]/85 text-white placeholder:text-white/30'
-                      }`}
+                      className={`w-full p-4 rounded-xl text-sm border focus:outline-none transition-all ${errors.name
+                        ? 'border-red-400 bg-red-50/10 focus:ring-1 focus:ring-red-400'
+                        : 'border-gray-800 focus:border-brand-purple-accent/50 bg-[#130b24]/40 focus:bg-[#130b24]/85 text-white placeholder:text-white/30'
+                        }`}
                     />
                     {errors.name && (
                       <p className="text-xs text-red-500 flex items-center gap-1 mt-1 font-semibold">
@@ -210,11 +213,10 @@ export default function Contact() {
                       value={formData.email}
                       onChange={handleInputChange}
                       placeholder="eg. you@example.com"
-                      className={`w-full p-4 rounded-xl text-sm border focus:outline-none transition-all ${
-                        errors.email
-                          ? 'border-red-400 bg-red-50/10 focus:ring-1 focus:ring-red-400'
-                          : 'border-gray-800 focus:border-brand-purple-accent/50 bg-[#130b24]/40 focus:bg-[#130b24]/85 text-white placeholder:text-white/30'
-                      }`}
+                      className={`w-full p-4 rounded-xl text-sm border focus:outline-none transition-all ${errors.email
+                        ? 'border-red-400 bg-red-50/10 focus:ring-1 focus:ring-red-400'
+                        : 'border-gray-800 focus:border-brand-purple-accent/50 bg-[#130b24]/40 focus:bg-[#130b24]/85 text-white placeholder:text-white/30'
+                        }`}
                     />
                     {errors.email && (
                       <p className="text-xs text-red-500 flex items-center gap-1 mt-1 font-semibold">
@@ -237,11 +239,10 @@ export default function Contact() {
                       value={formData.phone}
                       onChange={handleInputChange}
                       placeholder="e.g. +1 (555) 000-0000"
-                      className={`w-full p-4 rounded-xl text-sm border focus:outline-none transition-all ${
-                        errors.phone
-                          ? 'border-red-400 bg-red-50/10 focus:ring-1 focus:ring-red-400'
-                          : 'border-gray-800 focus:border-brand-purple-accent/50 bg-[#130b24]/40 focus:bg-[#130b24]/85 text-white placeholder:text-white/30'
-                      }`}
+                      className={`w-full p-4 rounded-xl text-sm border focus:outline-none transition-all ${errors.phone
+                        ? 'border-red-400 bg-red-50/10 focus:ring-1 focus:ring-red-400'
+                        : 'border-gray-800 focus:border-brand-purple-accent/50 bg-[#130b24]/40 focus:bg-[#130b24]/85 text-white placeholder:text-white/30'
+                        }`}
                     />
                     {errors.phone && (
                       <p className="text-xs text-red-500 flex items-center gap-1 mt-1 font-semibold">
@@ -312,11 +313,10 @@ export default function Contact() {
                     onChange={handleInputChange}
                     rows="6"
                     placeholder="Briefly describe the key features, timeline expectations, and target audience for your product..."
-                    className={`w-full p-4 rounded-xl text-sm border focus:outline-none transition-all resize-none ${
-                      errors.message
-                        ? 'border-red-400 bg-red-50/10 focus:ring-1 focus:ring-red-400'
-                        : 'border-gray-800 focus:border-brand-purple-accent/50 bg-[#130b24]/40 focus:bg-[#130b24]/85 text-white placeholder:text-white/30'
-                    }`}
+                    className={`w-full p-4 rounded-xl text-sm border focus:outline-none transition-all resize-none ${errors.message
+                      ? 'border-red-400 bg-red-50/10 focus:ring-1 focus:ring-red-400'
+                      : 'border-gray-800 focus:border-brand-purple-accent/50 bg-[#130b24]/40 focus:bg-[#130b24]/85 text-white placeholder:text-white/30'
+                      }`}
                   />
                   {errors.message && (
                     <p className="text-xs text-red-500 flex items-center gap-1 mt-1 font-semibold">
@@ -365,7 +365,7 @@ export default function Contact() {
               <div className="w-16 h-16 rounded-full bg-brand-purple/10 border border-brand-purple/20 text-brand-purple flex items-center justify-center mx-auto text-3xl">
                 <FiCheckCircle />
               </div>
-              
+
               <div className="space-y-2">
                 <h3 className="font-heading font-extrabold text-xl text-text-primary">
                   Briefing Received!

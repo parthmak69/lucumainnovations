@@ -10,7 +10,7 @@ export default function Footer() {
     { icon: FiGithub, href: 'https://github.com', label: 'GitHub' },
     { icon: FiTwitter, href: 'https://twitter.com', label: 'Twitter' },
     { icon: FiLinkedin, href: 'https://linkedin.com', label: 'LinkedIn' },
-    { icon: FiInstagram, href: 'https://instagram.com', label: 'Instagram' }
+    { icon: FiInstagram, href: 'https://instagram.com/lucumainnovations/', label: 'Instagram' }
   ];
 
   return (
@@ -114,11 +114,11 @@ export default function Footer() {
           <ul className="space-y-4 text-sm text-text-secondary">
             <li className="flex items-start gap-3">
               <FiMail className="mt-1 text-brand-purple text-base shrink-0" />
-              <span>contact@lucumainnovations.com</span>
+              <span>info@lucumainnovations.com</span>
             </li>
             <li className="flex items-start gap-3">
               <FiPhone className="mt-1 text-brand-purple text-base shrink-0" />
-              <span>+91 77388 31706 / +91 99300 80190</span>
+              <span>+91 99300 80190 / +91 77388 31706</span>
             </li>
             <li className="flex items-start gap-3">
               <FiMapPin className="mt-1 text-brand-purple text-base shrink-0" />

@@ -14,8 +14,8 @@ export default function GetStarted() {
     company: '',
   });
   const [selectedServices, setSelectedServices] = useState([]);
-  const [tier, setTier] = useState('standard'); // 'mvp' | 'standard' | 'enterprise'
-  const [speed, setSpeed] = useState('standard'); // 'flexible' | 'standard' | 'rush'
+  const [tier, setTier] = useState('standard'); 
+  const [speed, setSpeed] = useState('standard');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [validationError, setValidationError] = useState('');
 
@@ -161,7 +161,7 @@ export default function GetStarted() {
                     Project Configured!
                   </h2>
                   <p className="text-sm text-text-secondary max-w-md mx-auto leading-relaxed">
-                    Thank you, **{clientData.name}**. Your configuration setup has been sent to our founding engineers. We will prepare a detailed operational roadmap and follow up at **{clientData.email}** within 12 hours.
+                    Thank you, {clientData.name}. Your configuration setup has been sent to our founding engineers. We will prepare a detailed operational roadmap and follow up at {clientData.email} within 12-24 hours.
                   </p>
                 </div>
                 <div className="pt-4 flex justify-center gap-4">
@@ -187,12 +187,12 @@ export default function GetStarted() {
 
                     <div className="space-y-4 pt-2">
                       <div className="space-y-1.5">
-                        <label className="text-xs font-heading font-bold text-white uppercase tracking-wider">Your Name *</label>
+                        <label className="text-xs font-heading font-bold text-white uppercase tracking-wider">Name*</label>
                         <input
                           type="text"
                           value={clientData.name}
                           onChange={(e) => setClientData({ ...clientData, name: e.target.value })}
-                          placeholder="e.g. Liam Devlin"
+                          placeholder="Your Name"
                           className="w-full p-4 rounded-xl text-sm border border-gray-800 focus:outline-none focus:border-brand-purple-accent/50 bg-transparent text-white placeholder:text-white/20"
                         />
                       </div>
@@ -202,7 +202,7 @@ export default function GetStarted() {
                           type="email"
                           value={clientData.email}
                           onChange={(e) => setClientData({ ...clientData, email: e.target.value })}
-                          placeholder="e.g. liam@company.com"
+                          placeholder="e.g. you@example.com"
                           className="w-full p-4 rounded-xl text-sm border border-gray-800 focus:outline-none focus:border-brand-purple-accent/50 bg-transparent text-white placeholder:text-white/20"
                         />
                       </div>
@@ -212,7 +212,7 @@ export default function GetStarted() {
                           type="text"
                           value={clientData.company}
                           onChange={(e) => setClientData({ ...clientData, company: e.target.value })}
-                          placeholder="e.g. Future Labs"
+                          placeholder="Enter your company name"
                           className="w-full p-4 rounded-xl text-sm border border-gray-800 focus:outline-none focus:border-brand-purple-accent/50 bg-transparent text-white placeholder:text-white/20"
                         />
                       </div>
