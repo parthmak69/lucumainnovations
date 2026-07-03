@@ -30,7 +30,7 @@ export default function Navbar() {
     { name: 'Home', path: '/' },
     { name: 'Services', path: '/services' },
     { name: 'About', path: '/about' },
-    { name: 'Contact', path: '/contact' }
+    { name: 'Contact Us', path: '/contact' }
   ];
 
   return (
@@ -51,7 +51,7 @@ export default function Navbar() {
             <div className="w-10 h-10 flex items-center justify-center transform group-hover:scale-105 transition-transform duration-300">
               <img src={logoUrl} alt="Lucuma Innovations logo" className="w-full h-full object-contain" />
             </div>
-            <span className="font-heading font-extrabold text-xl tracking-tight text-text-primary group-hover:text-brand-purple transition-colors duration-300">
+            <span className="font-heading font-extrabold text-base min-[400px]:text-lg sm:text-xl tracking-tight text-text-primary group-hover:text-brand-purple transition-colors duration-300">
               Lucuma <span className="text-brand-purple">Innovations</span>
             </span>
           </Link>

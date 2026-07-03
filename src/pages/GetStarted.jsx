@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { servicesData } from '../data/mockData';
-import { FiCheck, FiArrowRight, FiArrowLeft, FiCompass, FiBriefcase, FiDollarSign, FiClock, FiFileText, FiAward } from 'react-icons/fi';
+import { FiCheck, FiArrowRight, FiArrowLeft, FiCompass, FiBriefcase, FiAward, FiFeather, FiLayout, FiTrendingUp, FiZap, FiCalendar, FiClock } from 'react-icons/fi';
 import GradientBlobs from '../components/3d/GradientBlobs';
 import SpotlightCard from '../components/SpotlightCard';
 
@@ -13,13 +13,14 @@ export default function GetStarted() {
     email: '',
     company: '',
   });
-  const [selectedServices, setSelectedServices] = useState([]);
-  const [tier, setTier] = useState('standard'); 
-  const [speed, setSpeed] = useState('standard');
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [validationError, setValidationError] = useState('');
 
-  // Handle service toggle
+  const [selectedServices, setSelectedServices] = useState([]);
+  const [stage, setStage] = useState('idea');
+  const [timeline, setTimeline] = useState('month');
+  const [validationError, setValidationError] = useState('');
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  // Toggle capabilities
   const handleToggleService = (serviceId) => {
     if (selectedServices.includes(serviceId)) {
       setSelectedServices(selectedServices.filter((id) => id !== serviceId));
@@ -28,74 +29,68 @@ export default function GetStarted() {
     }
   };
 
-  // Perform client data validation
-  const validateStep1 = () => {
-    if (!clientData.name.trim()) {
-      setValidationError('Please enter your name.');
-      return false;
-    }
-    if (!clientData.email.trim()) {
-      setValidationError('Please enter your email.');
-      return false;
-    }
-    if (!/\S+@\S+\.\S+/.test(clientData.email)) {
-      setValidationError('Please enter a valid email address.');
-      return false;
-    }
+  // Onboarding summary calculator (weeks only)
+  const estimateResult = useMemo(() => {
+    if (selectedServices.length === 0) return { weeks: 0 };
+
+    let totalWeeks = 0;
+    selectedServices.forEach((id) => {
+      const match = servicesData.find((s) => s.id === id);
+      if (match) {
+        totalWeeks += match.weeks || 4; // base average of 4 weeks per module
+      }
+    });
+
+    // Speed modifiers
+    let modifier = 1.0;
+    if (timeline === 'asap') modifier = 0.7; // accelerated delivery schedule
+    if (timeline === 'flexible') modifier = 1.3; // longer delivery window
+
+    const finalWeeks = Math.ceil(totalWeeks * modifier);
+
+    return {
+      weeks: finalWeeks
+    };
+  }, [selectedServices, timeline]);
+
+  const validateStep = () => {
     setValidationError('');
+    
+    if (currentStep === 1) {
+      if (!clientData.name.trim() || !clientData.email.trim()) {
+        setValidationError('Please fill in all required fields');
+        return false;
+      }
+      if (!/\S+@\S+\.\S+/.test(clientData.email)) {
+        setValidationError('Please enter a valid email address');
+        return false;
+      }
+    }
+
+    if (currentStep === 2) {
+      if (selectedServices.length === 0) {
+        setValidationError('Please select at least one requirement to continue.');
+        return false;
+      }
+    }
+
     return true;
   };
 
   const nextStep = () => {
-    if (currentStep === 1) {
-      if (!validateStep1()) return;
+    if (validateStep()) {
+      setCurrentStep((prev) => prev + 1);
     }
-    if (currentStep === 2 && selectedServices.length === 0) {
-      setValidationError('Please select at least one service to continue.');
-      return;
-    }
-    setValidationError('');
-    setCurrentStep((prev) => Math.min(prev + 1, 4));
   };
 
   const prevStep = () => {
     setValidationError('');
-    setCurrentStep((prev) => Math.max(prev - 1, 1));
+    setCurrentStep((prev) => prev - 1);
   };
-
-  // Calculate pricing metrics
-  const estimateResult = useMemo(() => {
-    if (selectedServices.length === 0) return { min: 0, max: 0, weeks: 0 };
-    const selectedObjs = servicesData.filter((s) => selectedServices.includes(s.id));
-    const baseSum = selectedObjs.reduce((acc, curr) => acc + curr.basePrice, 0);
-    const maxWeeks = Math.max(...selectedObjs.map((s) => s.timeframeWeeks));
-
-    let tierMult = 1.0;
-    if (tier === 'mvp') tierMult = 0.75;
-    else if (tier === 'enterprise') tierMult = 1.45;
-
-    let speedCostMult = 1.0;
-    let speedTimeMult = 1.0;
-    if (speed === 'rush') {
-      speedCostMult = 1.3;
-      speedTimeMult = 0.7;
-    } else if (speed === 'flexible') {
-      speedCostMult = 0.95;
-      speedTimeMult = 1.3;
-    }
-
-    const calculatedBase = baseSum * tierMult * speedCostMult;
-    const finalWeeks = Math.ceil(maxWeeks * speedTimeMult);
-
-    return {
-      min: Math.round(calculatedBase * 0.9 / 50) * 50,
-      max: Math.round(calculatedBase * 1.15 / 50) * 50,
-      weeks: finalWeeks
-    };
-  }, [selectedServices, tier, speed]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!validateStep()) return;
     setIsSubmitted(true);
   };
 
@@ -103,18 +98,30 @@ export default function GetStarted() {
     <div className="relative min-h-screen pt-28 pb-20 bg-bg-light overflow-hidden flex flex-col justify-center">
       <GradientBlobs />
 
+      {/* ================= HERO TITLE ================= */}
+      <section className="relative max-w-3xl mx-auto px-6 mb-8 text-center z-10">
+        <div className="space-y-3">
+          <h1 className="font-heading font-extrabold text-3xl sm:text-4xl text-text-primary">
+            Get Started
+          </h1>
+          <p className="text-text-secondary text-sm leading-relaxed max-w-xl mx-auto">
+            Ready to build something with us? Use this guided onboarding flow to tell us about your project.
+          </p>
+        </div>
+      </section>
+
       <div className="relative max-w-3xl w-full mx-auto px-6 z-10">
         {/* Onboarding Wizard Card */}
         <SpotlightCard spotlightColor="rgba(124, 58, 237, 0.25)" className="p-6 md:p-10 overflow-hidden relative text-left">
           
           {/* Progress Indicators */}
           {!isSubmitted && (
-            <div className="flex justify-between items-center mb-8 border-b border-gray-800 pb-6">
+            <div className="flex items-center justify-between border-b border-gray-800/60 pb-6 mb-6">
               {[
                 { step: 1, label: 'Profile' },
                 { step: 2, label: 'Services' },
-                { step: 3, label: 'Scale' },
-                { step: 4, label: 'Summary' }
+                { step: 3, label: 'Discovery' },
+                { step: 4, label: 'Brief' }
               ].map((s) => (
                 <div key={s.step} className="flex items-center gap-2">
                   <div
@@ -156,13 +163,16 @@ export default function GetStarted() {
                 <div className="w-16 h-16 rounded-full bg-brand-purple/10 border border-brand-purple/20 text-brand-purple flex items-center justify-center mx-auto text-3xl">
                   <FiAward className="text-brand-purple" />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <h2 className="font-heading font-extrabold text-2xl text-text-primary">
-                    Project Configured!
+                    Project Inquiry Received!
                   </h2>
-                  <p className="text-sm text-text-secondary max-w-md mx-auto leading-relaxed">
-                    Thank you, {clientData.name}. Your configuration setup has been sent to our founding engineers. We will prepare a detailed operational roadmap and follow up at {clientData.email} within 12-24 hours.
-                  </p>
+                  <div className="text-sm text-text-secondary max-w-md mx-auto leading-relaxed space-y-2">
+                    <p>Thank you for choosing Lucuma Innovations.</p>
+                    <p>Your project inquiry has been successfully received.</p>
+                    <p>Our team will carefully review your requirements and reach out to discuss the next steps.</p>
+                    <p className="font-semibold text-brand-purple-accent">We're excited to help bring your vision to life.</p>
+                  </div>
                 </div>
                 <div className="pt-4 flex justify-center gap-4">
                   <Link to="/" className="px-6 py-2.5 btn-neumorphic text-sm">
@@ -251,7 +261,6 @@ export default function GetStarted() {
                             />
                             <div className="text-xs">
                               <p className="font-bold text-white">{s.title}</p>
-                              <p className="text-[10px] text-text-secondary mt-0.5">${s.basePrice.toLocaleString()} base price</p>
                             </div>
                           </div>
                         );
@@ -260,61 +269,60 @@ export default function GetStarted() {
                   </div>
                 )}
 
-                {/* Step 3: Project Tier and Speed */}
+                {/* Step 3: Project Stage and Timeline */}
                 {currentStep === 3 && (
                   <div className="space-y-6">
                     <div className="space-y-1">
                       <h2 className="font-heading font-extrabold text-xl text-white flex items-center gap-2">
-                        <FiDollarSign className="text-brand-purple-accent" /> Define Tier & Speed
+                        <FiCompass className="text-brand-purple-accent" /> Define Stage & Timeline
                       </h2>
-                      <p className="text-text-secondary text-xs">Adjust complexity scale and delivery sprints parameters.</p>
+                      <p className="text-text-secondary text-xs">Let us know about your project status and timeline targets.</p>
                     </div>
  
-                    {/* Project Tier */}
+                    {/* Project Stage */}
                     <div className="space-y-3 pt-2">
-                      <label className="text-xs font-heading font-bold text-white uppercase tracking-wider">Project Tier</label>
-                      <div className="grid grid-cols-3 gap-3">
+                      <label className="text-xs font-heading font-bold text-white uppercase tracking-wider">Project Stage</label>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         {[
-                          { id: 'mvp', label: 'MVP Release', desc: 'Core features (0.75x)' },
-                          { id: 'standard', label: 'Standard Release', desc: 'Full release (1.0x)' },
-                          { id: 'enterprise', label: 'Enterprise Suite', desc: 'Custom scale (1.45x)' }
+                          { id: 'idea', label: 'Just an Idea', icon: <FiFeather className="text-brand-purple-accent text-sm" />, desc: 'The project is still being planned.' },
+                          { id: 'design', label: 'Design Ready', icon: <FiLayout className="text-brand-purple-accent text-sm" />, desc: 'Wireframes, UI or designs already exist.' },
+                          { id: 'existing', label: 'Existing Product', icon: <FiTrendingUp className="text-brand-purple-accent text-sm" />, desc: 'Improve, scale or modernize an existing project.' }
                         ].map((t) => (
                           <button
                             key={t.id}
-                            onClick={() => setTier(t.id)}
+                            onClick={() => setStage(t.id)}
                             className={`p-4 rounded-xl border flex flex-col text-left transition-all cursor-pointer ${
-                              tier === t.id
+                              stage === t.id
                                 ? 'bg-brand-purple-muted border-brand-purple/40 text-brand-purple-accent shadow-sm'
                                 : 'bg-transparent border-gray-800 hover:bg-white/5'
                             }`}
                           >
-                            <span className="font-bold text-xs text-white">{t.label}</span>
-                            <span className="text-[9px] text-text-secondary mt-1">{t.desc}</span>
+                            <span className="font-bold text-xs text-white flex items-center gap-1.5">{t.icon} {t.label}</span>
+                            <span className="text-[10px] text-text-secondary mt-1.5 leading-relaxed">{t.desc}</span>
                           </button>
                         ))}
                       </div>
                     </div>
  
-                    {/* Timeline Speed */}
+                    {/* Target Timeline */}
                     <div className="space-y-3">
-                      <label className="text-xs font-heading font-bold text-white uppercase tracking-wider">Development Speed</label>
-                      <div className="grid grid-cols-3 gap-3">
+                      <label className="text-xs font-heading font-bold text-white uppercase tracking-wider">Target Timeline</label>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         {[
-                          { id: 'flexible', label: 'Flexible', desc: 'Relaxed sprints (0.95x cost)' },
-                          { id: 'standard', label: 'Standard', desc: 'Optimized (1.0x cost)' },
-                          { id: 'rush', label: 'Rush Sprints', desc: 'Priority deployment (1.3x cost)' }
+                          { id: 'asap', label: 'ASAP', icon: <FiZap className="text-brand-purple-accent text-sm" /> },
+                          { id: 'month', label: 'Within 1 Month', icon: <FiCalendar className="text-brand-purple-accent text-sm" /> },
+                          { id: 'flexible', label: 'Flexible', icon: <FiClock className="text-brand-purple-accent text-sm" /> }
                         ].map((sp) => (
                           <button
                             key={sp.id}
-                            onClick={() => setSpeed(sp.id)}
+                            onClick={() => setTimeline(sp.id)}
                             className={`p-4 rounded-xl border flex flex-col text-left transition-all cursor-pointer ${
-                              speed === sp.id
+                              timeline === sp.id
                                 ? 'bg-brand-purple-muted border-brand-purple/40 text-brand-purple-accent shadow-sm'
                                 : 'bg-transparent border-gray-800 hover:bg-white/5'
                             }`}
                           >
-                            <span className="font-bold text-xs text-white">{sp.label}</span>
-                            <span className="text-[9px] text-text-secondary mt-1">{sp.desc}</span>
+                            <span className="font-bold text-xs text-white flex items-center gap-1.5">{sp.icon} {sp.label}</span>
                           </button>
                         ))}
                       </div>
@@ -322,35 +330,48 @@ export default function GetStarted() {
                   </div>
                 )}
  
-                {/* Step 4: Summary Proposal */}
+                {/* Step 4: Summary Brief */}
                 {currentStep === 4 && (
                   <div className="space-y-6">
                     <div className="space-y-1">
                       <h2 className="font-heading font-extrabold text-xl text-white flex items-center gap-2">
-                        <FiFileText className="text-brand-purple-accent" /> Project Summary Review
+                        <FiCompass className="text-brand-purple-accent" /> Project Brief
                       </h2>
-                      <p className="text-text-secondary text-xs">Verify your selections and estimated values before submission.</p>
+                      <p className="text-text-secondary text-xs">Verify your onboarding details and selections before submission.</p>
                     </div>
  
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
                       {/* Left: Metadata details */}
                       <div className="space-y-4">
                         <div>
-                          <p className="text-[10px] uppercase font-bold text-text-secondary">CLIENT REPRESENTATIVE</p>
+                          <p className="text-[10px] uppercase font-bold text-text-secondary tracking-wider">CLIENT REPRESENTATIVE</p>
                           <p className="text-sm font-bold text-white mt-0.5">{clientData.name}</p>
                           <p className="text-xs text-text-secondary">{clientData.email}</p>
                           {clientData.company && <p className="text-xs text-text-secondary">Company: {clientData.company}</p>}
                         </div>
  
-                        <div>
-                          <p className="text-[10px] uppercase font-bold text-text-secondary">TIER & DEVELOPMENT VELOCITY</p>
-                          <p className="text-sm font-bold text-white mt-0.5">Tier: {tier.toUpperCase()}</p>
-                          <p className="text-xs text-text-secondary">Sprints: {speed.toUpperCase()}</p>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-[10px] uppercase font-bold text-text-secondary tracking-wider">PROJECT STAGE</p>
+                            <p className="text-xs font-bold text-white mt-0.5 flex items-center gap-1.5">
+                              {stage === 'idea' && <><FiFeather className="text-brand-purple-accent" /> Just an Idea</>}
+                              {stage === 'design' && <><FiLayout className="text-brand-purple-accent" /> Design Ready</>}
+                              {stage === 'existing' && <><FiTrendingUp className="text-brand-purple-accent" /> Existing Product</>}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] uppercase font-bold text-text-secondary tracking-wider">TIMELINE</p>
+                            <p className="text-xs font-bold text-white mt-0.5 flex items-center gap-1.5">
+                              {timeline === 'asap' && <><FiZap className="text-brand-purple-accent" /> ASAP</>}
+                              {timeline === 'month' && <><FiCalendar className="text-brand-purple-accent" /> Within 1 Month</>}
+                              {timeline === 'flexible' && <><FiClock className="text-brand-purple-accent" /> Flexible</>}
+                            </p>
+                          </div>
                         </div>
  
                         <div>
-                          <p className="text-[10px] uppercase font-bold text-text-secondary">CAPABILITIES SELECTED</p>
-                          <ul className="text-xs space-y-1 mt-1.5 max-h-28 overflow-y-auto pr-1">
+                          <p className="text-[10px] uppercase font-bold text-text-secondary tracking-wider">CAPABILITIES SELECTED</p>
+                          <ul className="text-xs space-y-1 mt-1.5 max-h-24 overflow-y-auto pr-1">
                             {servicesData
                               .filter((s) => selectedServices.includes(s.id))
                               .map((s) => (
@@ -366,18 +387,28 @@ export default function GetStarted() {
                       {/* Right: Calculations box */}
                       <div className="p-6 rounded-2xl bg-brand-purple-muted/30 border border-brand-purple/10 flex flex-col justify-center space-y-5">
                         <div>
-                          <p className="text-[10px] uppercase font-bold text-text-secondary">ESTIMATED PRICE RANGE</p>
-                          <p className="font-heading font-extrabold text-2xl sm:text-3xl text-brand-purple-accent mt-1">
-                            ${estimateResult.min.toLocaleString()} - ${estimateResult.max.toLocaleString()}
+                          <p className="text-[10px] uppercase font-bold text-text-secondary tracking-wider">STATUS</p>
+                          <p className="font-heading font-extrabold text-2xl text-brand-purple-accent mt-1">
+                            Ready for Review
                           </p>
                         </div>
                         <div>
-                          <p className="text-[10px] uppercase font-bold text-text-secondary">ESTIMATED TIMELINE</p>
+                          <p className="text-[10px] uppercase font-bold text-text-secondary tracking-wider">ESTIMATED DEVELOPMENT TIMELINE</p>
                           <p className="font-heading font-bold text-lg text-white mt-0.5">
                             {estimateResult.weeks} Weeks
                           </p>
                         </div>
                       </div>
+                    </div>
+
+                    {/* What Happens Next */}
+                    <div className="pt-4 border-t border-gray-800/60 space-y-3">
+                      <h4 className="font-heading font-bold text-xs text-white uppercase tracking-wider">What Happens Next?</h4>
+                      <ol className="text-xs text-text-secondary space-y-2 list-decimal list-inside leading-relaxed pl-1">
+                        <li>Our team reviews your project requirements.</li>
+                        <li>We carefully evaluate your goals and technical needs.</li>
+                        <li>We'll contact you to discuss the best solution and next steps.</li>
+                      </ol>
                     </div>
                   </div>
                 )}
@@ -411,7 +442,7 @@ export default function GetStarted() {
                   onClick={handleSubmit}
                   className="px-6 py-2.5 btn-neumorphic-primary text-xs font-bold tracking-wider flex items-center gap-2"
                 >
-                  Submit Briefing <FiCheck />
+                  Innovate <FiCheck />
                 </button>
               )}
             </div>

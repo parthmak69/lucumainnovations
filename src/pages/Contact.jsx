@@ -1,16 +1,33 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiMail, FiPhone, FiMapPin, FiSend, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
+import { FiMail, FiPhone, FiMapPin, FiCheckCircle, FiAlertCircle, FiSend, FiMessageSquare, FiBriefcase, FiUsers, FiLifeBuoy, FiStar, FiMoreHorizontal, FiArrowRight } from 'react-icons/fi';
 import GradientBlobs from '../components/3d/GradientBlobs';
 import SpotlightCard from '../components/SpotlightCard';
+
+const subjectOptions = [
+  { value: 'general', label: 'General Inquiry' },
+  { value: 'business', label: 'Business Inquiry' },
+  { value: 'partnership', label: 'Partnership' },
+  { value: 'support', label: 'Technical Support' },
+  { value: 'feedback', label: 'Feedback' },
+  { value: 'other', label: 'Other' }
+];
+
+const subjectIcons = {
+  general: <FiMessageSquare className="text-brand-purple-accent text-lg" />,
+  business: <FiBriefcase className="text-brand-purple-accent text-lg" />,
+  partnership: <FiUsers className="text-brand-purple-accent text-lg" />,
+  support: <FiLifeBuoy className="text-brand-purple-accent text-lg" />,
+  feedback: <FiStar className="text-brand-purple-accent text-lg" />,
+  other: <FiMoreHorizontal className="text-brand-purple-accent text-lg" />
+};
 
 export default function Contact() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    phone: '',
-    projectType: 'defopt',
-    budget: 'defopt',
+    subject: 'general',
     message: ''
   });
 
@@ -18,48 +35,24 @@ export default function Contact() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  const projectOptions = [
-    { value: 'defopt', label: 'Select a project type' },
-    { value: 'web-dev', label: 'Custom Web Development' },
-    { value: 'mobile-android', label: 'Android Application' },
-    { value: 'mobile-ios', label: 'iOS Application' },
-    { value: 'ui-ux', label: 'UI/UX Design' },
-    { value: 'backend-api', label: 'Backend & REST APIs' },
-    { value: 'cloud-hosting', label: 'Cloud Hosting & Servers' },
-    { value: 'maintenance', label: 'Website Maintenance' },
-    { value: 'optimization', label: 'Performance Optimization' },
-    { value: 'automation', label: 'Business Automation' },
-    { value: 'other', label: 'Others / Custom Request' }
-  ];
-
-  const budgetOptions = [
-    { value: 'defopt', label: 'Select a price range' },
-    { value: 'under-3k', label: 'Under $3,000' },
-    { value: '3k-5k', label: '$3,000 - $5,000' },
-    { value: '5k-10k', label: '$5,000 - $10,000' },
-    { value: '10k-25k', label: '$10,000 - $25,000' },
-    { value: '25k-plus', label: '$25,000+' }
-  ];
-
   // Validation
   const validateForm = () => {
     const tempErrors = {};
-    if (!formData.name.trim()) tempErrors.name = 'Name is required.';
-
-    if (!formData.email.trim()) {
-      tempErrors.email = 'Email is required.';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      tempErrors.email = 'Email is invalid.';
+    
+    if (!formData.name.trim()) {
+      tempErrors.name = 'Please fill in all required fields';
     }
-
-    if (formData.phone.trim() && !/^\+?[0-9\s-]{7,15}$/.test(formData.phone)) {
-      tempErrors.phone = 'Phone number is invalid.';
+    
+    if (!formData.email.trim()) {
+      tempErrors.email = 'Please fill in all required fields';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      tempErrors.email = 'Please enter a valid email address';
     }
 
     if (!formData.message.trim()) {
-      tempErrors.message = 'Please write a brief description of your project.';
-    } else if (formData.message.trim().length < 20) {
-      tempErrors.message = 'Message must be at least 20 characters.';
+      tempErrors.message = 'Please fill in all required fields';
+    } else if (formData.message.trim().length < 10) {
+      tempErrors.message = 'Message should be at least 10 characters';
     }
 
     setErrors(tempErrors);
@@ -94,9 +87,7 @@ export default function Contact() {
       setFormData({
         name: '',
         email: '',
-        phone: '',
-        projectType: 'defopt',
-        budget: 'defopt',
+        subject: 'general',
         message: ''
       });
     }, 1800);
@@ -113,10 +104,10 @@ export default function Contact() {
             GET IN TOUCH
           </div>
           <h1 className="font-heading font-extrabold text-4xl sm:text-5xl text-text-primary">
-            Let's Engineer Your Idea.
+            Contact Us
           </h1>
           <p className="text-text-secondary text-base sm:text-lg leading-relaxed max-w-2xl mx-auto">
-            Ready to scale your business operations? Send us a description of your project target, and our founding engineers will respond with a plan.
+            Have a question, partnership idea, or need support? This is the fastest way to reach us.
           </p>
         </div>
       </section>
@@ -129,10 +120,10 @@ export default function Contact() {
           <div className="lg:col-span-4 space-y-8 lg:sticky lg:top-28 text-left">
             <div className="space-y-4">
               <h2 className="font-heading font-extrabold text-2xl text-text-primary">
-                Briefing Brief
+                Reach Out
               </h2>
               <p className="text-text-secondary text-sm leading-relaxed">
-                Rather discuss in detail via email or call? Reach our founders directly. We answer briefings and estimate requests in under 12 hours.
+                Connect with our team directly. We review all messages and general inquiries in under 12 hours.
               </p>
             </div>
 
@@ -153,10 +144,10 @@ export default function Contact() {
                 </div>
                 <div>
                   <h4 className="font-heading font-bold text-sm text-white">Call Founders</h4>
-                  <p className="text-xs text-text-secondary">+91 99300 80190 (Founder)</p>
-                  <p className="text-xs text-text-secondary mt-1">+91 77388 31706 (Co-Founder)</p>
+                  <p className="text-xs text-text-secondary mt-1">+91 99300 80190</p>
+                  <p className="text-xs text-text-secondary mt-1.5">+91 77388 31706</p>
 
-                  <p className="text-xs text-text-secondary">Mon - Fri: 10 AM - 9 PM IST</p>
+                  <p className="text-xs text-text-secondary mt-1">Mon - Fri: 10 AM - 9 PM IST</p>
                 </div>
               </SpotlightCard>
 
@@ -167,6 +158,22 @@ export default function Contact() {
                 <div>
                   <h4 className="font-heading font-bold text-sm text-white">Development Hub</h4>
                   <p className="text-xs text-text-secondary">Mumbai, Maharashtra</p>
+                </div>
+              </SpotlightCard>
+
+              {/* Soft Redirect Navigation Helper */}
+              <SpotlightCard spotlightColor="rgba(124, 58, 237, 0.25)" className="p-5 border border-brand-purple/10">
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-heading font-bold text-sm text-white">Looking to start a project?</h4>
+                    <p className="text-xs text-text-secondary mt-1">Use the Get Started flow for a guided onboarding experience.</p>
+                  </div>
+                  <Link 
+                    to="/get-started" 
+                    className="w-full py-2.5 btn-neumorphic-primary flex items-center justify-center gap-2 text-xs font-bold shadow-sm"
+                  >
+                    Start Your Project <FiArrowRight className="text-xs" />
+                  </Link>
                 </div>
               </SpotlightCard>
             </div>
@@ -181,12 +188,17 @@ export default function Contact() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label htmlFor="name" className="text-xs font-heading font-bold text-text-primary uppercase tracking-wider">
-                      Name*
+                      Full Name*
                     </label>
                     <input
                       type="text"
                       id="name"
                       name="name"
+                      autoFocus
+                      autoComplete="name"
+                      aria-label="Full Name"
+                      aria-invalid={errors.name ? 'true' : 'false'}
+                      aria-describedby={errors.name ? 'name-error' : undefined}
                       value={formData.name}
                       onChange={handleInputChange}
                       placeholder="Your Name"
@@ -196,7 +208,7 @@ export default function Contact() {
                         }`}
                     />
                     {errors.name && (
-                      <p className="text-xs text-red-500 flex items-center gap-1 mt-1 font-semibold">
+                      <p id="name-error" role="alert" className="text-xs text-red-500 flex items-center gap-1 mt-1 font-semibold">
                         <FiAlertCircle /> {errors.name}
                       </p>
                     )}
@@ -204,12 +216,16 @@ export default function Contact() {
 
                   <div className="space-y-2">
                     <label htmlFor="email" className="text-xs font-heading font-bold text-text-primary uppercase tracking-wider">
-                      Email*
+                      Email Address*
                     </label>
                     <input
                       type="email"
                       id="email"
                       name="email"
+                      autoComplete="email"
+                      aria-label="Email Address"
+                      aria-invalid={errors.email ? 'true' : 'false'}
+                      aria-describedby={errors.email ? 'email-error' : undefined}
                       value={formData.email}
                       onChange={handleInputChange}
                       placeholder="eg. you@example.com"
@@ -219,77 +235,31 @@ export default function Contact() {
                         }`}
                     />
                     {errors.email && (
-                      <p className="text-xs text-red-500 flex items-center gap-1 mt-1 font-semibold">
+                      <p id="email-error" role="alert" className="text-xs text-red-500 flex items-center gap-1 mt-1 font-semibold">
                         <FiAlertCircle /> {errors.email}
                       </p>
                     )}
                   </div>
                 </div>
 
-                {/* Row 2: Phone and Project Type */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label htmlFor="phone" className="text-xs font-heading font-bold text-text-primary uppercase tracking-wider">
-                      Phone Number (Optional)
-                    </label>
-                    <input
-                      type="tel"
-                      id="phone"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      placeholder="e.g. +1 (555) 000-0000"
-                      className={`w-full p-4 rounded-xl text-sm border focus:outline-none transition-all ${errors.phone
-                        ? 'border-red-400 bg-red-50/10 focus:ring-1 focus:ring-red-400'
-                        : 'border-gray-800 focus:border-brand-purple-accent/50 bg-[#130b24]/40 focus:bg-[#130b24]/85 text-white placeholder:text-white/30'
-                        }`}
-                    />
-                    {errors.phone && (
-                      <p className="text-xs text-red-500 flex items-center gap-1 mt-1 font-semibold">
-                        <FiAlertCircle /> {errors.phone}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <label htmlFor="projectType" className="text-xs font-heading font-bold text-text-primary uppercase tracking-wider">
-                      Project Type
-                    </label>
-                    <div className="relative">
-                      <select
-                        id="projectType"
-                        name="projectType"
-                        value={formData.projectType}
-                        onChange={handleInputChange}
-                        className="w-full p-4 rounded-xl text-sm border border-gray-800 focus:border-brand-purple-accent/50 focus:outline-none bg-[#130b24]/40 focus:bg-[#130b24]/85 text-white appearance-none cursor-pointer"
-                      >
-                        {projectOptions.map((opt) => (
-                          <option key={opt.value} value={opt.value} className="bg-[#130b24] text-white">
-                            {opt.label}
-                          </option>
-                        ))}
-                      </select>
-                      <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-text-secondary">
-                        ▼
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Row 3: Budget Bracket */}
+                {/* Row 2: Subject */}
                 <div className="space-y-2">
-                  <label htmlFor="budget" className="text-xs font-heading font-bold text-text-primary uppercase tracking-wider">
-                    Project Budget Range
+                  <label htmlFor="subject" className="text-xs font-heading font-bold text-text-primary uppercase tracking-wider">
+                    Subject*
                   </label>
                   <div className="relative">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none flex items-center justify-center">
+                      {subjectIcons[formData.subject]}
+                    </div>
                     <select
-                      id="budget"
-                      name="budget"
-                      value={formData.budget}
+                      id="subject"
+                      name="subject"
+                      aria-label="Subject"
+                      value={formData.subject}
                       onChange={handleInputChange}
-                      className="w-full p-4 rounded-xl text-sm border border-gray-800 focus:border-brand-purple-accent/50 focus:outline-none bg-[#130b24]/40 focus:bg-[#130b24]/85 text-white appearance-none cursor-pointer"
+                      className="w-full pl-12 pr-10 py-4 rounded-xl text-sm border border-gray-800 focus:border-brand-purple-accent/50 focus:outline-none bg-[#130b24]/40 focus:bg-[#130b24]/85 text-white appearance-none cursor-pointer"
                     >
-                      {budgetOptions.map((opt) => (
+                      {subjectOptions.map((opt) => (
                         <option key={opt.value} value={opt.value} className="bg-[#130b24] text-white">
                           {opt.label}
                         </option>
@@ -301,25 +271,28 @@ export default function Contact() {
                   </div>
                 </div>
 
-                {/* Row 4: Message Textarea */}
+                {/* Row 3: Message Textarea */}
                 <div className="space-y-2">
                   <label htmlFor="message" className="text-xs font-heading font-bold text-text-primary uppercase tracking-wider">
-                    Project Description *
+                    Message*
                   </label>
                   <textarea
                     id="message"
                     name="message"
+                    aria-label="Message"
+                    aria-invalid={errors.message ? 'true' : 'false'}
+                    aria-describedby={errors.message ? 'message-error' : undefined}
                     value={formData.message}
                     onChange={handleInputChange}
                     rows="6"
-                    placeholder="Briefly describe the key features, timeline expectations, and target audience for your product..."
+                    placeholder="Type your message here..."
                     className={`w-full p-4 rounded-xl text-sm border focus:outline-none transition-all resize-none ${errors.message
                       ? 'border-red-400 bg-red-50/10 focus:ring-1 focus:ring-red-400'
                       : 'border-gray-800 focus:border-brand-purple-accent/50 bg-[#130b24]/40 focus:bg-[#130b24]/85 text-white placeholder:text-white/30'
                       }`}
                   />
                   {errors.message && (
-                    <p className="text-xs text-red-500 flex items-center gap-1 mt-1 font-semibold">
+                    <p id="message-error" role="alert" className="text-xs text-red-500 flex items-center gap-1 mt-1 font-semibold">
                       <FiAlertCircle /> {errors.message}
                     </p>
                   )}
@@ -330,13 +303,14 @@ export default function Contact() {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full py-4 btn-neumorphic-primary flex items-center justify-center gap-2 text-base font-bold shadow-lg disabled:opacity-75 focus:outline-none"
+                    aria-busy={isSubmitting}
+                    className="w-full py-4 btn-neumorphic-primary flex items-center justify-center gap-2 text-base font-bold shadow-lg disabled:opacity-75 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-purple focus-visible:ring-offset-2"
                   >
                     {isSubmitting ? (
                       <span className="w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
                     ) : (
                       <>
-                        <FiSend /> Send Message
+                        <FiSend className="text-sm" /> Send Message
                       </>
                     )}
                   </button>
@@ -354,7 +328,7 @@ export default function Contact() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-text-dark/45 backdrop-blur-sm flex items-center justify-center p-6"
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-6"
           >
             <motion.div
               initial={{ scale: 0.9, y: 20 }}
@@ -368,16 +342,16 @@ export default function Contact() {
 
               <div className="space-y-2">
                 <h3 className="font-heading font-extrabold text-xl text-text-primary">
-                  Briefing Received!
+                  Message Sent
                 </h3>
                 <p className="text-sm text-text-secondary leading-relaxed">
-                  Thank you for submitting your project parameters. A founding engineer will review your requirements and reach out within 12 hours.
+                  Thank you for contacting Lucuma Innovations. Your message has been received and our team will respond shortly.
                 </p>
               </div>
 
               <button
                 onClick={() => setIsSuccess(false)}
-                className="w-full py-3 btn-neumorphic font-bold text-sm"
+                className="w-full py-3 btn-neumorphic font-bold text-sm focus-visible:ring-2 focus-visible:ring-brand-purple focus-visible:outline-none"
               >
                 Close Window
               </button>

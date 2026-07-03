@@ -48,7 +48,7 @@ export default function Home() {
               Available for New Projects
             </motion.div>
 
-            <h1 className="font-heading font-extrabold text-5xl sm:text-6xl lg:text-7xl text-white leading-[1.05] tracking-tight mb-6">
+            <h1 className="font-heading font-extrabold text-4xl sm:text-6xl lg:text-7xl text-white leading-[1.05] tracking-tight mb-6">
               <BlurText 
                 text="Ideas deserve more than code. They deserve innovation."
                 delay={150}
@@ -336,7 +336,7 @@ export default function Home() {
           viewport={{ once: true }}
         >
           <SpotlightCard spotlightColor={SPOTLIGHT_PINK}>
-            <h2 className="font-heading font-extrabold text-4xl md:text-5xl text-white mb-6">
+            <h2 className="font-heading font-extrabold text-3xl sm:text-4xl md:text-5xl text-white mb-6">
               Ready to Build Something{' '}
               <span className="text-brand-purple-accent">Extraordinary?</span>
             </h2>

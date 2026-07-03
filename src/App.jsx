@@ -1,15 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import FloatingLines from './components/FloatingLines';
-import Home from './pages/Home';
-import Services from './pages/Services';
-import About from './pages/About';
-import Contact from './pages/Contact';
-import GetStarted from './pages/GetStarted';
 import logoUrl from './assets/logo.png';
+
+const FloatingLines = lazy(() => import('./components/FloatingLines'));
+const Home = lazy(() => import('./pages/Home'));
+const Services = lazy(() => import('./pages/Services'));
+const About = lazy(() => import('./pages/About'));
+const Contact = lazy(() => import('./pages/Contact'));
+const GetStarted = lazy(() => import('./pages/GetStarted'));
+
+const ENABLED_WAVES = ['top', 'middle', 'bottom'];
+const LINES_GRADIENT = ['#e945f5', '#6f6f6f', '#6a6a6a'];
 
 // Scroll resetting component on route navigation change
 function ScrollToTop() {
@@ -36,18 +40,20 @@ function App() {
 
       {/* ── Fixed WebGL Background (behind everything) ── */}
       <div className="fixed inset-0" style={{ zIndex: 0 }}>
-        <FloatingLines
-          enabledWaves={['top', 'middle', 'bottom']}
-          lineCount={8}
-          lineDistance={8}
-          bendRadius={8}
-          bendStrength={-2}
-          interactive
-          parallax={true}
-          animationSpeed={1}
-          linesGradient={['#e945f5', '#6f6f6f', '#6a6a6a']}
-          mixBlendMode="normal"
-        />
+        <Suspense fallback={null}>
+          <FloatingLines
+            enabledWaves={ENABLED_WAVES}
+            lineCount={8}
+            lineDistance={8}
+            bendRadius={8}
+            bendStrength={-2}
+            interactive
+            parallax={true}
+            animationSpeed={1}
+            linesGradient={LINES_GRADIENT}
+            mixBlendMode="normal"
+          />
+        </Suspense>
         <div 
           className="absolute inset-0 pointer-events-none" 
           style={{ background: 'rgba(5, 1, 10, 0.88)' }} 
@@ -118,13 +124,15 @@ function App() {
             >
               <Navbar />
               <main className="flex-grow">
-                <Routes>
-                  <Route path="/"            element={<Home />} />
-                  <Route path="/services"    element={<Services />} />
-                  <Route path="/about"       element={<About />} />
-                  <Route path="/contact"     element={<Contact />} />
-                  <Route path="/get-started" element={<GetStarted />} />
-                </Routes>
+                <Suspense fallback={null}>
+                  <Routes>
+                    <Route path="/"            element={<Home />} />
+                    <Route path="/services"    element={<Services />} />
+                    <Route path="/about"       element={<About />} />
+                    <Route path="/contact"     element={<Contact />} />
+                    <Route path="/get-started" element={<GetStarted />} />
+                  </Routes>
+                </Suspense>
               </main>
               <Footer />
             </motion.div>
