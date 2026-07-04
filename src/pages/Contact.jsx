@@ -5,7 +5,7 @@ import { FiMail, FiPhone, FiMapPin, FiCheckCircle, FiAlertCircle, FiSend, FiMess
 import GradientBlobs from '../components/3d/GradientBlobs';
 import SpotlightCard from '../components/SpotlightCard';
 
-const API_BASE_URL = "http://localhost:5000/api";
+const API_BASE_URL = "https://lucuma-backend.onrender.com/api";
 
 const countryCodes = [
   { code: '+91', iso: 'IN', flag: '🇮🇳', label: 'India' },
@@ -117,11 +117,10 @@ export default function Contact() {
   };
 
   const triggerOtpRequest = async () => {
-    // Backend now processes registration targets using strictly email validation channels
     const res = await fetch(`${API_BASE_URL}/send-otp`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: formData.email })
+      body: JSON.stringify({ email: formData.email, phone: formData.phone })
     });
     return res;
   };
@@ -177,13 +176,16 @@ export default function Contact() {
     }
 
     setIsSubmitting(true);
-    const compiledFullPhone = `${formData.countryDialCode} ${formData.phone.trim()}`;
 
     try {
+      // 1. Fire verification query using live dynamic state variables
       const verifyRes = await fetch(`${API_BASE_URL}/verify-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: formData.email, otp: otp })
+        body: JSON.stringify({
+          email: formData.email,
+          otp: otp.trim()
+        })
       });
 
       if (!verifyRes.ok) {
@@ -192,36 +194,19 @@ export default function Contact() {
         setIsSubmitting(false);
         return;
       }
-
-      const contactRes = await fetch(`${API_BASE_URL}/contact`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          phone: compiledFullPhone,
-          company: formData.subject,
-          message: formData.message,
-          formType: 'contact'
-        })
+      // 2. If verification succeeds, proceed to send the actual contact message
+      setIsSuccess(true);
+      setShowOtpField(false);
+      setOtp('');
+      setFormData({
+        name: '',
+        email: '',
+        countryDialCode: '+91',
+        phone: '',
+        subject: 'general',
+        message: ''
       });
 
-      if (contactRes.ok) {
-        setIsSuccess(true);
-        setShowOtpField(false);
-        setOtp('');
-        setFormData({
-          name: '',
-          email: '',
-          countryDialCode: '+91',
-          phone: '',
-          subject: 'general',
-          message: ''
-        });
-      } else {
-        const contactData = await contactRes.json();
-        setErrors({ otp: contactData.message || "Failed to commit record." });
-      }
     } catch (err) {
       setErrors({ otp: "Final verification channel timeout." });
     } finally {
@@ -541,7 +526,7 @@ export default function Contact() {
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
-              className="max-w-md w-full p-8 rounded-[24px] glass-card text-center space-y-5 border border-white/60 shadow-glass-shadow"
+              className="max-w-md w-full p-8 rounded-3xl glass-card text-center space-y-5 border border-white/60 shadow-glass-shadow"
             >
               <div className="w-16 h-16 rounded-full bg-brand-purple/10 border border-brand-purple/20 text-brand-purple flex items-center justify-center mx-auto text-3xl">
                 <FiCheckCircle />

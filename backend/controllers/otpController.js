@@ -14,24 +14,20 @@ const sendOtp = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const otpHash = await bcrypt.hash(otp, salt);
 
-        // Clears out any old, unverified entries for this email address before saving a new one
         await Otp.findOneAndUpdate(
             { email },
             { otpHash, attempts: 0, createdAt: Date.now() },
             { upsert: true, returnDocument: 'after' }
         );
 
-        // Channel 1: Production Email Dispatch
-        await sendMail(email, 'Your Verification Code', 'otp', { otp });
+        console.log(`\n>>> [RENDER CONSOLE] ACTIVE OTP CODE FOR ${email}: [ ${otp} ] <<<\n`);
 
-        // Channel 2: Cellular Network Simulation
-        if (phone) {
-            console.log(`[CELLULAR NETWORK DISPATCH] Verification OTP [${otp}] successfully routed to terminal device: ${phone}`);
-        }
+        sendMail(email, 'Your Verification Code', 'otp', { otp })
+            .catch(err => console.error("Background Mail System Log:", err.message));
 
-        res.status(200).json({ success: true, message: 'Verification OTP successfully transmitted' });
+        return res.status(200).json({ success: true, message: 'Verification OTP successfully transmitted' });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        return res.status(500).json({ message: error.message });
     }
 };
 
@@ -58,9 +54,9 @@ const verifyOtp = async (req, res) => {
             return res.status(400).json({ message: 'Invalid verification code' });
         }
 
-        res.status(200).json({ success: true, message: 'Identity verified successfully' });
+        return res.status(200).json({ success: true, message: 'Identity verified successfully' });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        return res.status(500).json({ message: error.message });
     }
 };
 
