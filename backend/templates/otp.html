@@ -1,0 +1,79 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      body {
+        background-color: #0a0a0c;
+        margin: 0;
+        padding: 40px;
+        font-family: "Courier New", Courier, monospace;
+        color: #ffffff;
+      }
+      .card {
+        max-width: 480px;
+        margin: 0 auto;
+        background: #111114;
+        border: 2px solid #222226;
+        padding: 32px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+      }
+      .logo {
+        font-size: 18px;
+        font-weight: bold;
+        letter-spacing: 2px;
+        color: #00ff66;
+        text-transform: uppercase;
+        margin-bottom: 32px;
+      }
+      h1 {
+        font-size: 20px;
+        font-weight: 400;
+        letter-spacing: -0.5px;
+        margin: 0 0 16px 0;
+        color: #ffffff;
+      }
+      p {
+        font-size: 14px;
+        line-height: 1.6;
+        color: #a0a0aa;
+        margin: 0 0 32px 0;
+      }
+      .otp-box {
+        background: #16161a;
+        border: 1px dashed #333339;
+        padding: 20px;
+        text-align: center;
+        font-size: 32px;
+        font-weight: bold;
+        letter-spacing: 8px;
+        color: #00ff66;
+        margin-bottom: 32px;
+      }
+      .footer {
+        font-size: 11px;
+        color: #52525b;
+        border-top: 1px solid #222226;
+        padding-top: 20px;
+        line-height: 1.5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="logo">Lucuma Innovations</div>
+      <h1>Verification Code</h1>
+      <p>Hello,</p>
+      <p>
+        Use the following one-time password to verify your email address and
+        complete your enquiry submission. This code is valid for 5 minutes.
+      </p>
+      <div class="otp-box">{{otp}}</div>
+      <div class="footer">
+        This is an automated operational email.<br />
+        If you did not request this verification, please ignore this message
+        safely.
+      </div>
+    </div>
+  </body>
+</html>

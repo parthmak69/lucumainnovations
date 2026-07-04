@@ -1,0 +1,83 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      body {
+        background-color: #0a0a0c;
+        margin: 0;
+        padding: 40px;
+        font-family: "Courier New", Courier, monospace;
+        color: #ffffff;
+      }
+      .card {
+        max-width: 550px;
+        margin: 0 auto;
+        background: #111114;
+        border: 2px solid #ff3366;
+        padding: 32px;
+      }
+      .alert-title {
+        font-size: 16px;
+        font-weight: bold;
+        letter-spacing: 1px;
+        color: #ff3366;
+        text-transform: uppercase;
+        margin-bottom: 24px;
+      }
+      .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 24px;
+      }
+      .data-table td {
+        padding: 10px;
+        border-bottom: 1px solid #222226;
+        font-size: 13px;
+        vertical-align: top;
+      }
+      .label {
+        color: #a0a0aa;
+        width: 120px;
+        font-weight: bold;
+      }
+      .value {
+        color: #ffffff;
+      }
+      .msg-box {
+        background: #16161a;
+        padding: 16px;
+        border: 1px solid #222226;
+        color: #e4e4e7;
+        font-size: 13px;
+        line-height: 1.5;
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="alert-title">[ALERT] New Business Enquiry Submission</div>
+      <table class="data-table">
+        <tr>
+          <td class="label">Lead Name:</td>
+          <td class="value">{{name}}</td>
+        </tr>
+        <tr>
+          <td class="label">Email:</td>
+          <td class="value">{{email}}</td>
+        </tr>
+        <tr>
+          <td class="label">Phone:</td>
+          <td class="value">{{phone}}</td>
+        </tr>
+        <tr>
+          <td class="label">Company:</td>
+          <td class="value">{{company}}</td>
+        </tr>
+      </table>
+      <div class="label" style="margin-bottom: 8px">Message Payload:</div>
+      <div class="msg-box">{{message}}</div>
+    </div>
+  </body>
+</html>
