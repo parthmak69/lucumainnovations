@@ -1,11 +1,22 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiMail, FiPhone, FiMapPin, FiCheckCircle, FiAlertCircle, FiSend, FiMessageSquare, FiBriefcase, FiUsers, FiLifeBuoy, FiStar, FiMoreHorizontal, FiArrowRight } from 'react-icons/fi';
+import { FiMail, FiPhone, FiMapPin, FiCheckCircle, FiAlertCircle, FiSend, FiMessageSquare, FiBriefcase, FiUsers, FiLifeBuoy, FiStar, FiMoreHorizontal, FiArrowRight, FiRefreshCw } from 'react-icons/fi';
 import GradientBlobs from '../components/3d/GradientBlobs';
 import SpotlightCard from '../components/SpotlightCard';
 
 const API_BASE_URL = "http://localhost:5000/api";
+
+const countryCodes = [
+  { code: '+91', iso: 'IN', flag: '🇮🇳', label: 'India' },
+  { code: '+1', iso: 'US', flag: '🇺🇸', label: 'USA / Canada' },
+  { code: '+44', iso: 'GB', flag: '🇬🇧', label: 'UK' },
+  { code: '+971', iso: 'AE', flag: '🇦🇪', label: 'UAE' },
+  { code: '+65', iso: 'SG', flag: '🇸🇬', label: 'Singapore' },
+  { code: '+61', iso: 'AU', flag: '🇦🇺', label: 'Australia' },
+  { code: '+49', iso: 'DE', flag: '🇩🇪', label: 'Germany' },
+  { code: '+33', iso: 'FR', flag: '🇫🇷', label: 'France' }
+];
 
 const subjectOptions = [
   { value: 'general', label: 'General Inquiry' },
@@ -29,6 +40,8 @@ export default function Contact() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    countryDialCode: '+91',
+    phone: '',
     subject: 'general',
     message: ''
   });
@@ -40,8 +53,26 @@ export default function Contact() {
   // Verification States
   const [otp, setOtp] = useState('');
   const [showOtpField, setShowOtpField] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
 
-  // Validation
+  useEffect(() => {
+    let timer;
+    if (resendCooldown > 0) {
+      timer = setInterval(() => {
+        setResendCooldown((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
+
+  // Privacy Masking Logic Strings
+  const getMaskedEmail = (email) => {
+    if (!email) return "";
+    const [name, domain] = email.split("@");
+    if (name.length <= 2) return `${name[0]}***@${domain}`;
+    return `${name.substring(0, 2)}***${name.slice(-1)}@${domain}`;
+  };
+
   const validateForm = () => {
     const tempErrors = {};
 
@@ -53,6 +84,12 @@ export default function Contact() {
       tempErrors.email = 'Please fill in all required fields';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       tempErrors.email = 'Please enter a valid email address';
+    }
+
+    if (!formData.phone.trim()) {
+      tempErrors.phone = 'Please fill in all required fields';
+    } else if (!/^[0-9]{7,14}$/.test(formData.phone.trim().replace(/[\s\-]/g, ''))) {
+      tempErrors.phone = 'Please enter a valid phone number';
     }
 
     if (!formData.message.trim()) {
@@ -79,23 +116,28 @@ export default function Contact() {
     }
   };
 
-  // Step 1: Dispatches the OTP to the provided address
+  const triggerOtpRequest = async () => {
+    // Backend now processes registration targets using strictly email validation channels
+    const res = await fetch(`${API_BASE_URL}/send-otp`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: formData.email })
+    });
+    return res;
+  };
+
   const handleRequestOtp = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
 
     setIsSubmitting(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/send-otp`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: formData.email })
-      });
-      const data = await res.json();
-
+      const res = await triggerOtpRequest();
       if (res.ok) {
         setShowOtpField(true);
+        setResendCooldown(30);
       } else {
+        const data = await res.json();
         setErrors({ email: data.message || "Failed to deliver code." });
       }
     } catch (err) {
@@ -105,7 +147,28 @@ export default function Contact() {
     }
   };
 
-  // Step 2: Validates OTP and auto-submits form data
+  const handleResendOtp = async (e) => {
+    e.preventDefault();
+    if (resendCooldown > 0 || isSubmitting) return;
+
+    setIsSubmitting(true);
+    setErrors({});
+    try {
+      const res = await triggerOtpRequest();
+      if (res.ok) {
+        setOtp('');
+        setResendCooldown(30);
+      } else {
+        const data = await res.json();
+        setErrors({ otp: data.message || "Failed to resend validation code." });
+      }
+    } catch (err) {
+      setErrors({ otp: "Server interface connection dropped." });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleVerifyAndSubmit = async (e) => {
     e.preventDefault();
     if (!otp.trim()) {
@@ -114,30 +177,30 @@ export default function Contact() {
     }
 
     setIsSubmitting(true);
+    const compiledFullPhone = `${formData.countryDialCode} ${formData.phone.trim()}`;
+
     try {
-      // Check code
       const verifyRes = await fetch(`${API_BASE_URL}/verify-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: formData.email, otp: otp })
       });
-      const verifyData = await verifyRes.json();
 
       if (!verifyRes.ok) {
+        const verifyData = await verifyRes.json();
         setErrors({ otp: verifyData.message || "Invalid authentication token." });
         setIsSubmitting(false);
         return;
       }
 
-      // Persist to MongoDB & send twin notifications
       const contactRes = await fetch(`${API_BASE_URL}/contact`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: formData.name,
           email: formData.email,
-          phone: formData.phone,
-          company: formData.company,
+          phone: compiledFullPhone,
+          company: formData.subject,
           message: formData.message,
           formType: 'contact'
         })
@@ -150,6 +213,8 @@ export default function Contact() {
         setFormData({
           name: '',
           email: '',
+          countryDialCode: '+91',
+          phone: '',
           subject: 'general',
           message: ''
         });
@@ -185,6 +250,7 @@ export default function Contact() {
       <section className="relative max-w-6xl mx-auto px-6 z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
 
+          {/* Left direct info column */}
           <div className="lg:col-span-4 space-y-8 lg:sticky lg:top-28 text-left">
             <div className="space-y-4">
               <h2 className="font-heading font-extrabold text-2xl text-text-primary">
@@ -245,10 +311,12 @@ export default function Contact() {
             </div>
           </div>
 
+          {/* Form Processing Box Column */}
           <div className="lg:col-span-8">
             <SpotlightCard spotlightColor="rgba(124, 58, 237, 0.2)" className="p-6 md:p-10 relative overflow-hidden">
               <form onSubmit={showOtpField ? handleVerifyAndSubmit : handleRequestOtp} className="space-y-6 text-left">
 
+                {/* Name & Email Fields */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label htmlFor="name" className="text-xs font-heading font-bold text-text-primary uppercase tracking-wider">
@@ -259,8 +327,6 @@ export default function Contact() {
                       id="name"
                       name="name"
                       disabled={showOtpField}
-                      autoFocus
-                      autoComplete="name"
                       value={formData.name}
                       onChange={handleInputChange}
                       placeholder="Your Name"
@@ -285,7 +351,6 @@ export default function Contact() {
                       id="email"
                       name="email"
                       disabled={showOtpField}
-                      autoComplete="email"
                       value={formData.email}
                       onChange={handleInputChange}
                       placeholder="eg. you@example.com"
@@ -302,6 +367,55 @@ export default function Contact() {
                   </div>
                 </div>
 
+                {/* Country selector & Phone Field */}
+                <div className="space-y-2">
+                  <label htmlFor="phone" className="text-xs font-heading font-bold text-text-primary uppercase tracking-wider">
+                    Phone Number*
+                  </label>
+                  <div className="flex gap-3">
+                    <div className="relative w-32 shrink-0">
+                      <select
+                        name="countryDialCode"
+                        disabled={showOtpField}
+                        value={formData.countryDialCode}
+                        onChange={handleInputChange}
+                        className="w-full pl-3 pr-8 py-4 rounded-xl text-sm border border-gray-800 focus:border-brand-purple-accent/50 focus:outline-none bg-[#130b24]/40 focus:bg-[#130b24]/85 text-white appearance-none cursor-pointer"
+                      >
+                        {countryCodes.map((c) => (
+                          <option key={c.iso} value={c.code} className="bg-[#130b24] text-white">
+                            {c.flag} {c.code}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-text-secondary text-[10px]">
+                        ▼
+                      </div>
+                    </div>
+
+                    <div className="grow">
+                      <input
+                        type="tel"
+                        id="phone"
+                        name="phone"
+                        disabled={showOtpField}
+                        value={formData.phone}
+                        onChange={handleInputChange}
+                        placeholder="12345 67890"
+                        className={`w-full p-4 rounded-xl text-sm border focus:outline-none transition-all ${errors.phone
+                          ? 'border-red-400 bg-red-50/10 focus:ring-1 focus:ring-red-400'
+                          : 'border-gray-800 focus:border-brand-purple-accent/50 bg-[#130b24]/40 focus:bg-[#130b24]/85 text-white placeholder:text-white/30'
+                          }`}
+                      />
+                    </div>
+                  </div>
+                  {errors.phone && (
+                    <p role="alert" className="text-xs text-red-500 flex items-center gap-1 mt-1 font-semibold">
+                      <FiAlertCircle /> {errors.phone}
+                    </p>
+                  )}
+                </div>
+
+                {/* Subject Selector Field */}
                 <div className="space-y-2">
                   <label htmlFor="subject" className="text-xs font-heading font-bold text-text-primary uppercase tracking-wider">
                     Subject*
@@ -330,6 +444,7 @@ export default function Contact() {
                   </div>
                 </div>
 
+                {/* Message Box */}
                 <div className="space-y-2">
                   <label htmlFor="message" className="text-xs font-heading font-bold text-text-primary uppercase tracking-wider">
                     Message*
@@ -354,30 +469,38 @@ export default function Contact() {
                   )}
                 </div>
 
-                {/* Secure Verification Insertion Field */}
+                {/* Verification Info Header Panel Section */}
                 {showOtpField && (
-                  <div className="space-y-2 pt-2 border-t border-gray-800/60 dynamic-otp-container">
-                    <label htmlFor="otp" className="text-xs font-heading font-bold text-brand-purple-accent uppercase tracking-wider">
-                      Verify OTP Security Token*
-                    </label>
-                    <input
-                      type="text"
-                      id="otp"
-                      name="otp"
-                      maxLength="6"
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value)}
-                      placeholder="Enter 6-digit verification code"
-                      className={`w-full p-4 rounded-xl text-sm border focus:outline-none transition-all tracking-[4px] font-bold ${errors.otp
-                        ? 'border-red-400 bg-red-50/10 focus:ring-1 focus:ring-red-400'
-                        : 'border-brand-purple/40 focus:border-brand-purple-accent bg-[#130b24]/60 text-white placeholder:tracking-normal placeholder:font-normal placeholder:text-white/20'
-                        }`}
-                    />
-                    {errors.otp && (
-                      <p role="alert" className="text-xs text-red-500 flex items-center gap-1 mt-1 font-semibold">
-                        <FiAlertCircle /> {errors.otp}
+                  <div className="space-y-4 pt-4 border-t border-gray-800/60 text-left">
+                    <div className="p-4 rounded-xl bg-brand-purple-muted/20 border border-brand-purple/20 space-y-1.5">
+                      <p className="text-xs font-bold text-brand-purple-accent uppercase tracking-wide">Security Verification Active</p>
+                      <p className="text-xs text-text-secondary leading-relaxed">
+                        The secure verification OTP code has been successfully sent to: <span className="text-white font-mono font-bold">{getMaskedEmail(formData.email)}</span>. Please inspect your inbox folders.
                       </p>
-                    )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <label className="text-xs font-heading font-bold text-brand-purple-accent uppercase tracking-wider">Secure OTP Verification Code*</label>
+                        <button
+                          type="button"
+                          onClick={handleResendOtp}
+                          disabled={resendCooldown > 0 || isSubmitting}
+                          className={`text-xs font-mono font-bold flex items-center gap-1 transition-all ${resendCooldown > 0 ? 'text-text-secondary cursor-not-allowed' : 'text-brand-purple-accent hover:underline'}`}
+                        >
+                          <FiRefreshCw className={isSubmitting ? "animate-spin" : ""} /> {resendCooldown > 0 ? `Resend Code (${resendCooldown}s)` : "Resend OTP"}
+                        </button>
+                      </div>
+                      <input
+                        type="text"
+                        maxLength="6"
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value)}
+                        placeholder="000000"
+                        className={`w-full p-4 rounded-xl text-sm border text-center tracking-[6px] font-mono font-bold focus:outline-none bg-[#130b24]/60 text-white ${errors.otp ? 'border-red-400' : 'border-brand-purple/40'}`}
+                      />
+                      {errors.otp && <p className="text-xs text-red-500 flex items-center gap-1 mt-1 font-semibold"><FiAlertCircle /> {errors.otp}</p>}
+                    </div>
                   </div>
                 )}
 
@@ -435,7 +558,7 @@ export default function Contact() {
 
               <button
                 onClick={() => setIsSuccess(false)}
-                className="w-full py-3 btn-neumorphic font-bold text-sm"
+                className="w-full py-3 btn-neumorphic font-bold text-sm focus-visible:ring-2"
               >
                 Close Window
               </button>

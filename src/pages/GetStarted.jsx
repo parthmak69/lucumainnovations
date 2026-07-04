@@ -1,18 +1,28 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { servicesData } from '../data/mockData';
-import { FiCheck, FiArrowRight, FiArrowLeft, FiCompass, FiBriefcase, FiAward, FiFeather, FiLayout, FiTrendingUp, FiZap, FiCalendar, FiClock, FiAlertCircle } from 'react-icons/fi';
+import { FiCheck, FiArrowRight, FiArrowLeft, FiCompass, FiBriefcase, FiAward, FiFeather, FiLayout, FiTrendingUp, FiZap, FiCalendar, FiClock, FiAlertCircle, FiRefreshCw } from 'react-icons/fi';
 import GradientBlobs from '../components/3d/GradientBlobs';
 import SpotlightCard from '../components/SpotlightCard';
 
 const API_BASE_URL = "http://localhost:5000/api";
+
+const countryCodes = [
+  { code: '+91', iso: 'IN', flag: '🇮🇳' },
+  { code: '+1', iso: 'US', flag: '🇺🇸' },
+  { code: '+44', iso: 'GB', flag: '🇬🇧' },
+  { code: '+971', iso: 'AE', flag: '🇦🇪' },
+  { code: '+65', iso: 'SG', flag: '🇸🇬' }
+];
 
 export default function GetStarted() {
   const [currentStep, setCurrentStep] = useState(1);
   const [clientData, setClientData] = useState({
     name: '',
     email: '',
+    countryDialCode: '+91',
+    phone: '',
     company: '',
   });
 
@@ -22,10 +32,26 @@ export default function GetStarted() {
   const [validationError, setValidationError] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  // OTP Validation States
+  // OTP Verification Configurations
   const [otp, setOtp] = useState('');
   const [showOtpField, setShowOtpField] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  useEffect(() => {
+    let timer;
+    if (resendCooldown > 0) {
+      timer = setInterval(() => setResendCooldown((prev) => prev - 1), 1000);
+    }
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
+
+  const getMaskedEmail = (email) => {
+    if (!email) return "";
+    const [name, domain] = email.split("@");
+    if (name.length <= 2) return `${name[0]}***@${domain}`;
+    return `${name.substring(0, 2)}***${name.slice(-1)}@${domain}`;
+  };
 
   const handleToggleService = (serviceId) => {
     if (selectedServices.includes(serviceId)) {
@@ -50,23 +76,23 @@ export default function GetStarted() {
     if (timeline === 'asap') modifier = 0.7;
     if (timeline === 'flexible') modifier = 1.3;
 
-    const finalWeeks = Math.ceil(totalWeeks * modifier);
-
-    return {
-      weeks: finalWeeks
-    };
+    return { weeks: Math.ceil(totalWeeks * modifier) };
   }, [selectedServices, timeline]);
 
   const validateStep = () => {
     setValidationError('');
 
     if (currentStep === 1) {
-      if (!clientData.name.trim() || !clientData.email.trim()) {
+      if (!clientData.name.trim() || !clientData.email.trim() || !clientData.phone.trim()) {
         setValidationError('Please fill in all required fields');
         return false;
       }
       if (!/\S+@\S+\.\S+/.test(clientData.email)) {
         setValidationError('Please enter a valid email address');
+        return false;
+      }
+      if (!/^[0-9]{7,14}$/.test(clientData.phone.trim().replace(/[\s\-]/g, ''))) {
+        setValidationError('Please enter a valid phone number');
         return false;
       }
     }
@@ -92,7 +118,14 @@ export default function GetStarted() {
     setCurrentStep((prev) => prev - 1);
   };
 
-  // Step 1: Request verification sequence on final submit click
+  const triggerOtpRequest = async () => {
+    return await fetch(`${API_BASE_URL}/send-otp`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: clientData.email })
+    });
+  };
+
   const handleInitialSubmit = async (e) => {
     e.preventDefault();
     if (!validateStep()) return;
@@ -100,26 +133,43 @@ export default function GetStarted() {
     setIsSubmitting(true);
     setValidationError('');
     try {
-      const res = await fetch(`${API_BASE_URL}/send-otp`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: clientData.email })
-      });
-
+      const res = await triggerOtpRequest();
       if (res.ok) {
         setShowOtpField(true);
+        setResendCooldown(30);
       } else {
         const data = await res.json();
         setValidationError(data.message || "Failed to issue validation token.");
       }
     } catch (err) {
-      setValidationError("Failed to communicate with communication server.");
+      setValidationError("Failed to communicate with authentication server.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Step 2: Confirms verification and writes payload records
+  const handleResendOtp = async (e) => {
+    e.preventDefault();
+    if (resendCooldown > 0 || isSubmitting) return;
+
+    setIsSubmitting(true);
+    setValidationError('');
+    try {
+      const res = await triggerOtpRequest();
+      if (res.ok) {
+        setOtp('');
+        setResendCooldown(30);
+      } else {
+        const data = await res.json();
+        setValidationError(data.message || "Failed to execute resend command.");
+      }
+    } catch (err) {
+      setValidationError("Server communications drop during transaction.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleVerifyAndComplete = async (e) => {
     e.preventDefault();
     if (!otp.trim()) {
@@ -129,6 +179,8 @@ export default function GetStarted() {
 
     setIsSubmitting(true);
     setValidationError('');
+    const compiledFullPhone = `${clientData.countryDialCode} ${clientData.phone.trim()}`;
+
     try {
       const verifyRes = await fetch(`${API_BASE_URL}/verify-otp`, {
         method: "POST",
@@ -143,7 +195,6 @@ export default function GetStarted() {
         return;
       }
 
-      // Format payload text summaries
       const selectedTitles = servicesData
         .filter((s) => selectedServices.includes(s.id))
         .map((s) => s.title)
@@ -157,7 +208,7 @@ export default function GetStarted() {
         body: JSON.stringify({
           name: clientData.name,
           email: clientData.email,
-          phone: `Development Target: ${timeline}`,
+          phone: compiledFullPhone,
           company: clientData.company || "Not Provided",
           message: structuredMessage,
           formType: 'get-started'
@@ -277,7 +328,7 @@ export default function GetStarted() {
                           value={clientData.name}
                           onChange={(e) => setClientData({ ...clientData, name: e.target.value })}
                           placeholder="Your Name"
-                          className="w-full p-4 rounded-xl text-sm border border-gray-800 focus:outline-none focus:border-brand-purple-accent/50 bg-transparent text-white placeholder:text-white/20"
+                          className="w-full p-4 rounded-xl text-sm border border-gray-800 focus:outline-none focus:border-brand-purple-accent/50 bg-transparent text-white"
                         />
                       </div>
                       <div className="space-y-1.5">
@@ -287,9 +338,37 @@ export default function GetStarted() {
                           value={clientData.email}
                           onChange={(e) => setClientData({ ...clientData, email: e.target.value })}
                           placeholder="e.g. you@example.com"
-                          className="w-full p-4 rounded-xl text-sm border border-gray-800 focus:outline-none focus:border-brand-purple-accent/50 bg-transparent text-white placeholder:text-white/20"
+                          className="w-full p-4 rounded-xl text-sm border border-gray-800 focus:outline-none focus:border-brand-purple-accent/50 bg-transparent text-white"
                         />
                       </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-heading font-bold text-white uppercase tracking-wider">Phone Number*</label>
+                        <div className="flex gap-3">
+                          <div className="relative w-28 shrink-0">
+                            <select
+                              value={clientData.countryDialCode}
+                              onChange={(e) => setClientData({ ...clientData, countryDialCode: e.target.value })}
+                              className="w-full pl-3 pr-8 py-4 rounded-xl text-sm border border-gray-800 focus:outline-none bg-[#130b24]/40 text-white appearance-none cursor-pointer"
+                            >
+                              {countryCodes.map((c) => (
+                                <option key={c.iso} value={c.code} className="bg-[#130b24]">
+                                  {c.flag} {c.code}
+                                </option>
+                              ))}
+                            </select>
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-text-secondary text-[10px]">▼</div>
+                          </div>
+                          <input
+                            type="tel"
+                            value={clientData.phone}
+                            onChange={(e) => setClientData({ ...clientData, phone: e.target.value })}
+                            placeholder="12345 67890"
+                            className="grow p-4 rounded-xl text-sm border border-gray-800 focus:outline-none focus:border-brand-purple-accent/50 bg-transparent text-white"
+                          />
+                        </div>
+                      </div>
+
                       <div className="space-y-1.5">
                         <label className="text-xs font-heading font-bold text-white uppercase tracking-wider">Company Name (Optional)</label>
                         <input
@@ -297,7 +376,7 @@ export default function GetStarted() {
                           value={clientData.company}
                           onChange={(e) => setClientData({ ...clientData, company: e.target.value })}
                           placeholder="Enter your company name"
-                          className="w-full p-4 rounded-xl text-sm border border-gray-800 focus:outline-none focus:border-brand-purple-accent/50 bg-transparent text-white placeholder:text-white/20"
+                          className="w-full p-4 rounded-xl text-sm border border-gray-800 focus:outline-none focus:border-brand-purple-accent/50 bg-transparent text-white"
                         />
                       </div>
                     </div>
@@ -414,6 +493,7 @@ export default function GetStarted() {
                           <p className="text-[10px] uppercase font-bold text-text-secondary tracking-wider">CLIENT REPRESENTATIVE</p>
                           <p className="text-sm font-bold text-white mt-0.5">{clientData.name}</p>
                           <p className="text-xs text-text-secondary">{clientData.email}</p>
+                          <p className="text-xs text-text-secondary">Phone: {clientData.countryDialCode} {clientData.phone}</p>
                           {clientData.company && <p className="text-xs text-text-secondary">Company: {clientData.company}</p>}
                         </div>
 
@@ -467,21 +547,35 @@ export default function GetStarted() {
                       </div>
                     </div>
 
-                    {/* Integrated OTP Form Element */}
                     {showOtpField && (
-                      <div className="mt-4 pt-4 border-t border-gray-800/60 space-y-2 text-left">
-                        <label htmlFor="get-started-otp" className="text-xs font-heading font-bold text-brand-purple-accent uppercase tracking-wider">
-                          Enter Onboarding Verification OTP*
-                        </label>
-                        <input
-                          type="text"
-                          id="get-started-otp"
-                          maxLength="6"
-                          value={otp}
-                          onChange={(e) => setOtp(e.target.value)}
-                          placeholder="000000"
-                          className="w-full p-4 rounded-xl text-sm border border-brand-purple/40 bg-[#130b24]/60 text-white tracking-[4px] font-bold focus:outline-none focus:border-brand-purple-accent"
-                        />
+                      <div className="mt-4 pt-4 border-t border-gray-800/60 space-y-4 text-left">
+                        <div className="p-4 rounded-xl bg-brand-purple-muted/20 border border-brand-purple/20 text-xs text-text-secondary leading-relaxed">
+                          The secure verification OTP code has been successfully sent to: <span className="text-white font-mono font-bold">{getMaskedEmail(clientData.email)}</span>. Please inspect your inbox folders.
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <label htmlFor="get-started-otp" className="text-xs font-heading font-bold text-brand-purple-accent uppercase tracking-wider">
+                              Verification Code
+                            </label>
+                            <button
+                              type="button"
+                              onClick={handleResendOtp}
+                              disabled={resendCooldown > 0 || isSubmitting}
+                              className={`text-xs font-mono font-bold flex items-center gap-1 ${resendCooldown > 0 ? 'text-text-secondary' : 'text-brand-purple-accent hover:underline'}`}
+                            >
+                              <FiRefreshCw className={isSubmitting ? "animate-spin" : ""} /> {resendCooldown > 0 ? `Resend (${resendCooldown}s)` : "Resend OTP"}
+                            </button>
+                          </div>
+                          <input
+                            type="text"
+                            id="get-started-otp"
+                            maxLength="6"
+                            value={otp}
+                            onChange={(e) => setOtp(e.target.value)}
+                            placeholder="000000"
+                            className="w-full p-4 rounded-xl text-sm border text-center tracking-[6px] font-mono font-bold bg-[#130b24]/60 text-white border-brand-purple/40 focus:outline-none focus:border-brand-purple-accent"
+                          />
+                        </div>
                       </div>
                     )}
 
