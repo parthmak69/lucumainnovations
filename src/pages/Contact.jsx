@@ -5,6 +5,8 @@ import { FiMail, FiPhone, FiMapPin, FiCheckCircle, FiAlertCircle, FiSend, FiMess
 import GradientBlobs from '../components/3d/GradientBlobs';
 import SpotlightCard from '../components/SpotlightCard';
 
+const API_BASE_URL = "http://localhost:5000/api";
+
 const subjectOptions = [
   { value: 'general', label: 'General Inquiry' },
   { value: 'business', label: 'Business Inquiry' },
@@ -35,14 +37,18 @@ export default function Contact() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
+  // Verification States
+  const [otp, setOtp] = useState('');
+  const [showOtpField, setShowOtpField] = useState(false);
+
   // Validation
   const validateForm = () => {
     const tempErrors = {};
-    
+
     if (!formData.name.trim()) {
       tempErrors.name = 'Please fill in all required fields';
     }
-    
+
     if (!formData.email.trim()) {
       tempErrors.email = 'Please fill in all required fields';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
@@ -65,7 +71,6 @@ export default function Contact() {
       ...formData,
       [name]: value
     });
-    // Clear error as user types
     if (errors[name]) {
       setErrors({
         ...errors,
@@ -74,30 +79,95 @@ export default function Contact() {
     }
   };
 
-  const handleSubmit = (e) => {
+  // Step 1: Dispatches the OTP to the provided address
+  const handleRequestOtp = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
 
     setIsSubmitting(true);
-
-    // Mock server latency
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setIsSuccess(true);
-      setFormData({
-        name: '',
-        email: '',
-        subject: 'general',
-        message: ''
+    try {
+      const res = await fetch(`${API_BASE_URL}/send-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: formData.email })
       });
-    }, 1800);
+      const data = await res.json();
+
+      if (res.ok) {
+        setShowOtpField(true);
+      } else {
+        setErrors({ email: data.message || "Failed to deliver code." });
+      }
+    } catch (err) {
+      setErrors({ email: "Cannot connect to server gateway." });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Step 2: Validates OTP and auto-submits form data
+  const handleVerifyAndSubmit = async (e) => {
+    e.preventDefault();
+    if (!otp.trim()) {
+      setErrors({ otp: "Please input the verification code" });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      // Check code
+      const verifyRes = await fetch(`${API_BASE_URL}/verify-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: formData.email, otp: otp })
+      });
+      const verifyData = await verifyRes.json();
+
+      if (!verifyRes.ok) {
+        setErrors({ otp: verifyData.message || "Invalid authentication token." });
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Persist to MongoDB & send twin notifications
+      const contactRes = await fetch(`${API_BASE_URL}/contact`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          company: formData.company,
+          message: formData.message,
+          formType: 'contact'
+        })
+      });
+
+      if (contactRes.ok) {
+        setIsSuccess(true);
+        setShowOtpField(false);
+        setOtp('');
+        setFormData({
+          name: '',
+          email: '',
+          subject: 'general',
+          message: ''
+        });
+      } else {
+        const contactData = await contactRes.json();
+        setErrors({ otp: contactData.message || "Failed to commit record." });
+      }
+    } catch (err) {
+      setErrors({ otp: "Final verification channel timeout." });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <div className="relative min-h-screen pt-28 pb-20 bg-bg-light overflow-hidden">
       <GradientBlobs />
 
-      {/* ================= HERO TITLE ================= */}
       <section className="relative max-w-7xl mx-auto px-6 mb-16 text-center z-10">
         <div className="max-w-3xl mx-auto space-y-4">
           <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-brand-purple-muted border border-brand-purple-light/20 text-brand-purple font-mono text-xs font-semibold tracking-wider">
@@ -112,11 +182,9 @@ export default function Contact() {
         </div>
       </section>
 
-      {/* ================= CONTACT SECTION CONTENT ================= */}
       <section className="relative max-w-6xl mx-auto px-6 z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
 
-          {/* Left Column: Direct Info Panel */}
           <div className="lg:col-span-4 space-y-8 lg:sticky lg:top-28 text-left">
             <div className="space-y-4">
               <h2 className="font-heading font-extrabold text-2xl text-text-primary">
@@ -146,7 +214,6 @@ export default function Contact() {
                   <h4 className="font-heading font-bold text-sm text-white">Call Founders</h4>
                   <p className="text-xs text-text-secondary mt-1">+91 99300 80190</p>
                   <p className="text-xs text-text-secondary mt-1.5">+91 77388 31706</p>
-
                   <p className="text-xs text-text-secondary mt-1">Mon - Fri: 10 AM - 9 PM IST</p>
                 </div>
               </SpotlightCard>
@@ -161,15 +228,14 @@ export default function Contact() {
                 </div>
               </SpotlightCard>
 
-              {/* Soft Redirect Navigation Helper */}
               <SpotlightCard spotlightColor="rgba(124, 58, 237, 0.25)" className="p-5 border border-brand-purple/10">
                 <div className="space-y-4">
                   <div>
                     <h4 className="font-heading font-bold text-sm text-white">Looking to start a project?</h4>
                     <p className="text-xs text-text-secondary mt-1">Use the Get Started flow for a guided onboarding experience.</p>
                   </div>
-                  <Link 
-                    to="/get-started" 
+                  <Link
+                    to="/get-started"
                     className="w-full py-2.5 btn-neumorphic-primary flex items-center justify-center gap-2 text-xs font-bold shadow-sm"
                   >
                     Start Your Project <FiArrowRight className="text-xs" />
@@ -179,12 +245,10 @@ export default function Contact() {
             </div>
           </div>
 
-          {/* Right Column: Neumorphic Contact Form */}
           <div className="lg:col-span-8">
             <SpotlightCard spotlightColor="rgba(124, 58, 237, 0.2)" className="p-6 md:p-10 relative overflow-hidden">
-              <form onSubmit={handleSubmit} className="space-y-6 text-left">
+              <form onSubmit={showOtpField ? handleVerifyAndSubmit : handleRequestOtp} className="space-y-6 text-left">
 
-                {/* Row 1: Name and Email */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label htmlFor="name" className="text-xs font-heading font-bold text-text-primary uppercase tracking-wider">
@@ -194,11 +258,9 @@ export default function Contact() {
                       type="text"
                       id="name"
                       name="name"
+                      disabled={showOtpField}
                       autoFocus
                       autoComplete="name"
-                      aria-label="Full Name"
-                      aria-invalid={errors.name ? 'true' : 'false'}
-                      aria-describedby={errors.name ? 'name-error' : undefined}
                       value={formData.name}
                       onChange={handleInputChange}
                       placeholder="Your Name"
@@ -208,7 +270,7 @@ export default function Contact() {
                         }`}
                     />
                     {errors.name && (
-                      <p id="name-error" role="alert" className="text-xs text-red-500 flex items-center gap-1 mt-1 font-semibold">
+                      <p role="alert" className="text-xs text-red-500 flex items-center gap-1 mt-1 font-semibold">
                         <FiAlertCircle /> {errors.name}
                       </p>
                     )}
@@ -222,10 +284,8 @@ export default function Contact() {
                       type="email"
                       id="email"
                       name="email"
+                      disabled={showOtpField}
                       autoComplete="email"
-                      aria-label="Email Address"
-                      aria-invalid={errors.email ? 'true' : 'false'}
-                      aria-describedby={errors.email ? 'email-error' : undefined}
                       value={formData.email}
                       onChange={handleInputChange}
                       placeholder="eg. you@example.com"
@@ -235,14 +295,13 @@ export default function Contact() {
                         }`}
                     />
                     {errors.email && (
-                      <p id="email-error" role="alert" className="text-xs text-red-500 flex items-center gap-1 mt-1 font-semibold">
+                      <p role="alert" className="text-xs text-red-500 flex items-center gap-1 mt-1 font-semibold">
                         <FiAlertCircle /> {errors.email}
                       </p>
                     )}
                   </div>
                 </div>
 
-                {/* Row 2: Subject */}
                 <div className="space-y-2">
                   <label htmlFor="subject" className="text-xs font-heading font-bold text-text-primary uppercase tracking-wider">
                     Subject*
@@ -254,7 +313,7 @@ export default function Contact() {
                     <select
                       id="subject"
                       name="subject"
-                      aria-label="Subject"
+                      disabled={showOtpField}
                       value={formData.subject}
                       onChange={handleInputChange}
                       className="w-full pl-12 pr-10 py-4 rounded-xl text-sm border border-gray-800 focus:border-brand-purple-accent/50 focus:outline-none bg-[#130b24]/40 focus:bg-[#130b24]/85 text-white appearance-none cursor-pointer"
@@ -271,7 +330,6 @@ export default function Contact() {
                   </div>
                 </div>
 
-                {/* Row 3: Message Textarea */}
                 <div className="space-y-2">
                   <label htmlFor="message" className="text-xs font-heading font-bold text-text-primary uppercase tracking-wider">
                     Message*
@@ -279,9 +337,7 @@ export default function Contact() {
                   <textarea
                     id="message"
                     name="message"
-                    aria-label="Message"
-                    aria-invalid={errors.message ? 'true' : 'false'}
-                    aria-describedby={errors.message ? 'message-error' : undefined}
+                    disabled={showOtpField}
                     value={formData.message}
                     onChange={handleInputChange}
                     rows="6"
@@ -292,22 +348,51 @@ export default function Contact() {
                       }`}
                   />
                   {errors.message && (
-                    <p id="message-error" role="alert" className="text-xs text-red-500 flex items-center gap-1 mt-1 font-semibold">
+                    <p role="alert" className="text-xs text-red-500 flex items-center gap-1 mt-1 font-semibold">
                       <FiAlertCircle /> {errors.message}
                     </p>
                   )}
                 </div>
 
-                {/* Submit Button */}
+                {/* Secure Verification Insertion Field */}
+                {showOtpField && (
+                  <div className="space-y-2 pt-2 border-t border-gray-800/60 dynamic-otp-container">
+                    <label htmlFor="otp" className="text-xs font-heading font-bold text-brand-purple-accent uppercase tracking-wider">
+                      Verify OTP Security Token*
+                    </label>
+                    <input
+                      type="text"
+                      id="otp"
+                      name="otp"
+                      maxLength="6"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value)}
+                      placeholder="Enter 6-digit verification code"
+                      className={`w-full p-4 rounded-xl text-sm border focus:outline-none transition-all tracking-[4px] font-bold ${errors.otp
+                        ? 'border-red-400 bg-red-50/10 focus:ring-1 focus:ring-red-400'
+                        : 'border-brand-purple/40 focus:border-brand-purple-accent bg-[#130b24]/60 text-white placeholder:tracking-normal placeholder:font-normal placeholder:text-white/20'
+                        }`}
+                    />
+                    {errors.otp && (
+                      <p role="alert" className="text-xs text-red-500 flex items-center gap-1 mt-1 font-semibold">
+                        <FiAlertCircle /> {errors.otp}
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 <div className="pt-2">
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    aria-busy={isSubmitting}
-                    className="w-full py-4 btn-neumorphic-primary flex items-center justify-center gap-2 text-base font-bold shadow-lg disabled:opacity-75 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-purple focus-visible:ring-offset-2"
+                    className="w-full py-4 btn-neumorphic-primary flex items-center justify-center gap-2 text-base font-bold shadow-lg disabled:opacity-75 focus:outline-none"
                   >
                     {isSubmitting ? (
                       <span className="w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                    ) : showOtpField ? (
+                      <>
+                        <FiCheckCircle className="text-sm" /> Confirm & Submit Enquiry
+                      </>
                     ) : (
                       <>
                         <FiSend className="text-sm" /> Send Message
@@ -321,7 +406,6 @@ export default function Contact() {
         </div>
       </section>
 
-      {/* Success Modal Pop-up */}
       <AnimatePresence>
         {isSuccess && (
           <motion.div
@@ -351,7 +435,7 @@ export default function Contact() {
 
               <button
                 onClick={() => setIsSuccess(false)}
-                className="w-full py-3 btn-neumorphic font-bold text-sm focus-visible:ring-2 focus-visible:ring-brand-purple focus-visible:outline-none"
+                className="w-full py-3 btn-neumorphic font-bold text-sm"
               >
                 Close Window
               </button>

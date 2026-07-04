@@ -2,9 +2,11 @@ import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { servicesData } from '../data/mockData';
-import { FiCheck, FiArrowRight, FiArrowLeft, FiCompass, FiBriefcase, FiAward, FiFeather, FiLayout, FiTrendingUp, FiZap, FiCalendar, FiClock } from 'react-icons/fi';
+import { FiCheck, FiArrowRight, FiArrowLeft, FiCompass, FiBriefcase, FiAward, FiFeather, FiLayout, FiTrendingUp, FiZap, FiCalendar, FiClock, FiAlertCircle } from 'react-icons/fi';
 import GradientBlobs from '../components/3d/GradientBlobs';
 import SpotlightCard from '../components/SpotlightCard';
+
+const API_BASE_URL = "http://localhost:5000/api";
 
 export default function GetStarted() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -20,7 +22,11 @@ export default function GetStarted() {
   const [validationError, setValidationError] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  // Toggle capabilities
+  // OTP Validation States
+  const [otp, setOtp] = useState('');
+  const [showOtpField, setShowOtpField] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleToggleService = (serviceId) => {
     if (selectedServices.includes(serviceId)) {
       setSelectedServices(selectedServices.filter((id) => id !== serviceId));
@@ -29,7 +35,6 @@ export default function GetStarted() {
     }
   };
 
-  // Onboarding summary calculator (weeks only)
   const estimateResult = useMemo(() => {
     if (selectedServices.length === 0) return { weeks: 0 };
 
@@ -37,14 +42,13 @@ export default function GetStarted() {
     selectedServices.forEach((id) => {
       const match = servicesData.find((s) => s.id === id);
       if (match) {
-        totalWeeks += match.weeks || 4; // base average of 4 weeks per module
+        totalWeeks += match.weeks || 4;
       }
     });
 
-    // Speed modifiers
     let modifier = 1.0;
-    if (timeline === 'asap') modifier = 0.7; // accelerated delivery schedule
-    if (timeline === 'flexible') modifier = 1.3; // longer delivery window
+    if (timeline === 'asap') modifier = 0.7;
+    if (timeline === 'flexible') modifier = 1.3;
 
     const finalWeeks = Math.ceil(totalWeeks * modifier);
 
@@ -55,7 +59,7 @@ export default function GetStarted() {
 
   const validateStep = () => {
     setValidationError('');
-    
+
     if (currentStep === 1) {
       if (!clientData.name.trim() || !clientData.email.trim()) {
         setValidationError('Please fill in all required fields');
@@ -88,17 +92,95 @@ export default function GetStarted() {
     setCurrentStep((prev) => prev - 1);
   };
 
-  const handleSubmit = (e) => {
+  // Step 1: Request verification sequence on final submit click
+  const handleInitialSubmit = async (e) => {
     e.preventDefault();
     if (!validateStep()) return;
-    setIsSubmitted(true);
+
+    setIsSubmitting(true);
+    setValidationError('');
+    try {
+      const res = await fetch(`${API_BASE_URL}/send-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: clientData.email })
+      });
+
+      if (res.ok) {
+        setShowOtpField(true);
+      } else {
+        const data = await res.json();
+        setValidationError(data.message || "Failed to issue validation token.");
+      }
+    } catch (err) {
+      setValidationError("Failed to communicate with communication server.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Step 2: Confirms verification and writes payload records
+  const handleVerifyAndComplete = async (e) => {
+    e.preventDefault();
+    if (!otp.trim()) {
+      setValidationError("Please enter the verification OTP token.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setValidationError('');
+    try {
+      const verifyRes = await fetch(`${API_BASE_URL}/verify-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: clientData.email, otp: otp })
+      });
+
+      if (!verifyRes.ok) {
+        const verifyData = await verifyRes.json();
+        setValidationError(verifyData.message || "Invalid tracking token.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Format payload text summaries
+      const selectedTitles = servicesData
+        .filter((s) => selectedServices.includes(s.id))
+        .map((s) => s.title)
+        .join(', ');
+
+      const structuredMessage = `Project Stage: ${stage}\nTimeline Constraint: ${timeline}\nSelected Capabilities: ${selectedTitles}\nEstimated Scope duration calculated: ${estimateResult.weeks} Weeks`;
+
+      const contactRes = await fetch(`${API_BASE_URL}/contact`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: clientData.name,
+          email: clientData.email,
+          phone: `Development Target: ${timeline}`,
+          company: clientData.company || "Not Provided",
+          message: structuredMessage,
+          formType: 'get-started'
+        })
+      });
+
+      if (contactRes.ok) {
+        setIsSubmitted(true);
+      } else {
+        const contactData = await contactRes.json();
+        setValidationError(contactData.message || "Failed to lock enquiry tracking.");
+      }
+    } catch (err) {
+      setValidationError("Database communications pipeline failure.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <div className="relative min-h-screen pt-28 pb-20 bg-bg-light overflow-hidden flex flex-col justify-center">
       <GradientBlobs />
 
-      {/* ================= HERO TITLE ================= */}
       <section className="relative max-w-3xl mx-auto px-6 mb-8 text-center z-10">
         <div className="space-y-3">
           <h1 className="font-heading font-extrabold text-3xl sm:text-4xl text-text-primary">
@@ -111,10 +193,8 @@ export default function GetStarted() {
       </section>
 
       <div className="relative max-w-3xl w-full mx-auto px-6 z-10">
-        {/* Onboarding Wizard Card */}
         <SpotlightCard spotlightColor="rgba(124, 58, 237, 0.25)" className="p-6 md:p-10 overflow-hidden relative text-left">
-          
-          {/* Progress Indicators */}
+
           {!isSubmitted && (
             <div className="flex items-center justify-between border-b border-gray-800/60 pb-6 mb-6">
               {[
@@ -125,20 +205,18 @@ export default function GetStarted() {
               ].map((s) => (
                 <div key={s.step} className="flex items-center gap-2">
                   <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center font-heading text-xs font-bold transition-all ${
-                      currentStep === s.step
-                        ? 'bg-brand-purple text-white shadow-sm'
-                        : currentStep > s.step
+                    className={`w-8 h-8 rounded-full flex items-center justify-center font-heading text-xs font-bold transition-all ${currentStep === s.step
+                      ? 'bg-brand-purple text-white shadow-sm'
+                      : currentStep > s.step
                         ? 'bg-brand-purple-muted text-brand-purple-accent'
                         : 'bg-transparent border border-gray-800 text-text-secondary'
-                    }`}
+                      }`}
                   >
                     {currentStep > s.step ? '✓' : s.step}
                   </div>
                   <span
-                    className={`hidden sm:inline text-xs font-heading font-semibold ${
-                      currentStep === s.step ? 'text-brand-purple-accent' : 'text-text-secondary'
-                    }`}
+                    className={`hidden sm:inline text-xs font-heading font-semibold ${currentStep === s.step ? 'text-brand-purple-accent' : 'text-text-secondary'
+                      }`}
                   >
                     {s.label}
                   </span>
@@ -147,7 +225,6 @@ export default function GetStarted() {
             </div>
           )}
 
-          {/* Validation Error Banner */}
           {validationError && (
             <div className="mb-6 p-4 rounded-xl bg-red-50 text-red-600 text-xs font-semibold text-left flex items-center gap-2 border border-red-200/50">
               <span className="w-1.5 h-1.5 rounded-full bg-red-600 animate-ping shrink-0" />
@@ -155,10 +232,8 @@ export default function GetStarted() {
             </div>
           )}
 
-          {/* STEP CONTENT SWITCHBOARD */}
           <div className="text-left min-h-80">
             {isSubmitted ? (
-              // Success Screen
               <div className="text-center py-8 space-y-6">
                 <div className="w-16 h-16 rounded-full bg-brand-purple/10 border border-brand-purple/20 text-brand-purple flex items-center justify-center mx-auto text-3xl">
                   <FiAward className="text-brand-purple" />
@@ -185,7 +260,6 @@ export default function GetStarted() {
               </div>
             ) : (
               <div>
-                {/* Step 1: Customer Contact Info */}
                 {currentStep === 1 && (
                   <div className="space-y-5">
                     <div className="space-y-1">
@@ -230,7 +304,6 @@ export default function GetStarted() {
                   </div>
                 )}
 
-                {/* Step 2: Choose Services */}
                 {currentStep === 2 && (
                   <div className="space-y-5">
                     <div className="space-y-1">
@@ -247,11 +320,10 @@ export default function GetStarted() {
                           <div
                             key={s.id}
                             onClick={() => handleToggleService(s.id)}
-                            className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
-                              isSelected
-                                ? 'bg-brand-purple-muted border-brand-purple/40 text-brand-purple-accent shadow-sm'
-                                : 'bg-transparent border-gray-800 hover:bg-white/5'
-                            }`}
+                            className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${isSelected
+                              ? 'bg-brand-purple-muted border-brand-purple/40 text-brand-purple-accent shadow-sm'
+                              : 'bg-transparent border-gray-800 hover:bg-white/5'
+                              }`}
                           >
                             <input
                               type="checkbox"
@@ -269,7 +341,6 @@ export default function GetStarted() {
                   </div>
                 )}
 
-                {/* Step 3: Project Stage and Timeline */}
                 {currentStep === 3 && (
                   <div className="space-y-6">
                     <div className="space-y-1">
@@ -278,8 +349,7 @@ export default function GetStarted() {
                       </h2>
                       <p className="text-text-secondary text-xs">Let us know about your project status and timeline targets.</p>
                     </div>
- 
-                    {/* Project Stage */}
+
                     <div className="space-y-3 pt-2">
                       <label className="text-xs font-heading font-bold text-white uppercase tracking-wider">Project Stage</label>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -290,12 +360,12 @@ export default function GetStarted() {
                         ].map((t) => (
                           <button
                             key={t.id}
+                            type="button"
                             onClick={() => setStage(t.id)}
-                            className={`p-4 rounded-xl border flex flex-col text-left transition-all cursor-pointer ${
-                              stage === t.id
-                                ? 'bg-brand-purple-muted border-brand-purple/40 text-brand-purple-accent shadow-sm'
-                                : 'bg-transparent border-gray-800 hover:bg-white/5'
-                            }`}
+                            className={`p-4 rounded-xl border flex flex-col text-left transition-all cursor-pointer ${stage === t.id
+                              ? 'bg-brand-purple-muted border-brand-purple/40 text-brand-purple-accent shadow-sm'
+                              : 'bg-transparent border-gray-800 hover:bg-white/5'
+                              }`}
                           >
                             <span className="font-bold text-xs text-white flex items-center gap-1.5">{t.icon} {t.label}</span>
                             <span className="text-[10px] text-text-secondary mt-1.5 leading-relaxed">{t.desc}</span>
@@ -303,8 +373,7 @@ export default function GetStarted() {
                         ))}
                       </div>
                     </div>
- 
-                    {/* Target Timeline */}
+
                     <div className="space-y-3">
                       <label className="text-xs font-heading font-bold text-white uppercase tracking-wider">Target Timeline</label>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -315,12 +384,12 @@ export default function GetStarted() {
                         ].map((sp) => (
                           <button
                             key={sp.id}
+                            type="button"
                             onClick={() => setTimeline(sp.id)}
-                            className={`p-4 rounded-xl border flex flex-col text-left transition-all cursor-pointer ${
-                              timeline === sp.id
-                                ? 'bg-brand-purple-muted border-brand-purple/40 text-brand-purple-accent shadow-sm'
-                                : 'bg-transparent border-gray-800 hover:bg-white/5'
-                            }`}
+                            className={`p-4 rounded-xl border flex flex-col text-left transition-all cursor-pointer ${timeline === sp.id
+                              ? 'bg-brand-purple-muted border-brand-purple/40 text-brand-purple-accent shadow-sm'
+                              : 'bg-transparent border-gray-800 hover:bg-white/5'
+                              }`}
                           >
                             <span className="font-bold text-xs text-white flex items-center gap-1.5">{sp.icon} {sp.label}</span>
                           </button>
@@ -329,8 +398,7 @@ export default function GetStarted() {
                     </div>
                   </div>
                 )}
- 
-                {/* Step 4: Summary Brief */}
+
                 {currentStep === 4 && (
                   <div className="space-y-6">
                     <div className="space-y-1">
@@ -339,9 +407,8 @@ export default function GetStarted() {
                       </h2>
                       <p className="text-text-secondary text-xs">Verify your onboarding details and selections before submission.</p>
                     </div>
- 
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-                      {/* Left: Metadata details */}
                       <div className="space-y-4">
                         <div>
                           <p className="text-[10px] uppercase font-bold text-text-secondary tracking-wider">CLIENT REPRESENTATIVE</p>
@@ -349,7 +416,7 @@ export default function GetStarted() {
                           <p className="text-xs text-text-secondary">{clientData.email}</p>
                           {clientData.company && <p className="text-xs text-text-secondary">Company: {clientData.company}</p>}
                         </div>
- 
+
                         <div className="grid grid-cols-2 gap-4">
                           <div>
                             <p className="text-[10px] uppercase font-bold text-text-secondary tracking-wider">PROJECT STAGE</p>
@@ -368,7 +435,7 @@ export default function GetStarted() {
                             </p>
                           </div>
                         </div>
- 
+
                         <div>
                           <p className="text-[10px] uppercase font-bold text-text-secondary tracking-wider">CAPABILITIES SELECTED</p>
                           <ul className="text-xs space-y-1 mt-1.5 max-h-24 overflow-y-auto pr-1">
@@ -383,8 +450,7 @@ export default function GetStarted() {
                           </ul>
                         </div>
                       </div>
- 
-                      {/* Right: Calculations box */}
+
                       <div className="p-6 rounded-2xl bg-brand-purple-muted/30 border border-brand-purple/10 flex flex-col justify-center space-y-5">
                         <div>
                           <p className="text-[10px] uppercase font-bold text-text-secondary tracking-wider">STATUS</p>
@@ -401,7 +467,24 @@ export default function GetStarted() {
                       </div>
                     </div>
 
-                    {/* What Happens Next */}
+                    {/* Integrated OTP Form Element */}
+                    {showOtpField && (
+                      <div className="mt-4 pt-4 border-t border-gray-800/60 space-y-2 text-left">
+                        <label htmlFor="get-started-otp" className="text-xs font-heading font-bold text-brand-purple-accent uppercase tracking-wider">
+                          Enter Onboarding Verification OTP*
+                        </label>
+                        <input
+                          type="text"
+                          id="get-started-otp"
+                          maxLength="6"
+                          value={otp}
+                          onChange={(e) => setOtp(e.target.value)}
+                          placeholder="000000"
+                          className="w-full p-4 rounded-xl text-sm border border-brand-purple/40 bg-[#130b24]/60 text-white tracking-[4px] font-bold focus:outline-none focus:border-brand-purple-accent"
+                        />
+                      </div>
+                    )}
+
                     <div className="pt-4 border-t border-gray-800/60 space-y-3">
                       <h4 className="font-heading font-bold text-xs text-white uppercase tracking-wider">What Happens Next?</h4>
                       <ol className="text-xs text-text-secondary space-y-2 list-decimal list-inside leading-relaxed pl-1">
@@ -415,13 +498,14 @@ export default function GetStarted() {
               </div>
             )}
           </div>
- 
-          {/* Nav buttons footer */}
+
           {!isSubmitted && (
             <div className="mt-8 pt-6 border-t border-gray-800 flex items-center justify-between">
               {currentStep > 1 ? (
                 <button
+                  type="button"
                   onClick={prevStep}
+                  disabled={isSubmitting}
                   className="px-5 py-2.5 btn-neumorphic text-xs font-semibold flex items-center gap-2"
                 >
                   <FiArrowLeft /> Back
@@ -429,9 +513,10 @@ export default function GetStarted() {
               ) : (
                 <div />
               )}
- 
+
               {currentStep < 4 ? (
                 <button
+                  type="button"
                   onClick={nextStep}
                   className="px-5 py-2.5 btn-neumorphic text-xs font-semibold flex items-center gap-2 text-brand-purple-accent"
                 >
@@ -439,15 +524,23 @@ export default function GetStarted() {
                 </button>
               ) : (
                 <button
-                  onClick={handleSubmit}
-                  className="px-6 py-2.5 btn-neumorphic-primary text-xs font-bold tracking-wider flex items-center gap-2"
+                  type="button"
+                  onClick={showOtpField ? handleVerifyAndComplete : handleInitialSubmit}
+                  disabled={isSubmitting}
+                  className="px-6 py-2.5 btn-neumorphic-primary text-xs font-bold tracking-wider flex items-center gap-2 relative"
                 >
-                  Innovate <FiCheck />
+                  {isSubmitting ? (
+                    <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                  ) : showOtpField ? (
+                    <>Verify Code <FiCheck /></>
+                  ) : (
+                    <>Innovate <FiCheck /></>
+                  )}
                 </button>
               )}
             </div>
           )}
- 
+
         </SpotlightCard>
       </div>
     </div>

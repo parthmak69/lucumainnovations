@@ -17,7 +17,7 @@ const sendOtp = async (req, res) => {
         await Otp.findOneAndUpdate(
             { email },
             { otpHash, attempts: 0, createdAt: Date.now() },
-            { upsert: true, new: true }
+            { upsert: true, returnDocument: 'after' }
         );
 
         await sendMail(email, 'Your Verification Code', 'otp', { otp });
