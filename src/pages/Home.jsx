@@ -2,13 +2,13 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { FiArrowRight, FiCheckCircle } from 'react-icons/fi';
+import { UserCheck, Workflow, CreditCard, ShieldCheck, Cpu, Sparkles } from 'lucide-react';
 import InteractiveLogo from '../components/InteractiveLogo';
 import GradientBlobs from '../components/3d/GradientBlobs';
-import StatCounter from '../components/StatCounter';
 import InteractiveTimeline from '../components/InteractiveTimeline';
 import SpotlightCard from '../components/SpotlightCard';
 import BlurText from '../components/BlurText';
-import { servicesData, whyChooseUsData, statsData, testimonialsData } from '../data/mockData';
+import { servicesData, whyChooseUsData } from '../data/mockData';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 40 },
@@ -23,17 +23,15 @@ export default function Home() {
   return (
     <div className="overflow-hidden">
 
-      {/* ══════════════════════════════════════════════════════════════
-          HERO
-      ══════════════════════════════════════════════════════════════ */}
-      <section className="relative min-h-screen flex items-center overflow-hidden">
+      {/* HERO SECTION */}
+      <section className="relative min-h-screen flex items-center overflow-x-hidden w-full">
         <GradientBlobs />
 
-        <div className="relative z-10 max-w-7xl mx-auto px-6 py-24 flex flex-col lg:flex-row items-center gap-16">
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 py-24 flex flex-col lg:flex-row items-center gap-16">
 
           {/* Copy */}
           <motion.div
-            className="flex-1 text-center lg:text-left"
+            className="flex-1 w-full text-center lg:text-left px-4 sm:px-6"
             initial={{ opacity: 0, x: -40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.7, ease: 'easeOut' }}
@@ -48,7 +46,7 @@ export default function Home() {
               Available for New Projects
             </motion.div>
 
-            <h1 className="font-heading font-extrabold text-4xl sm:text-6xl lg:text-7xl text-white leading-[1.05] tracking-tight mb-6">
+            <h1 className="font-heading font-extrabold text-4xl sm:text-6xl lg:text-7xl text-white leading-[1.05] tracking-tight mb-6 break-words">
               <BlurText 
                 text="Ideas deserve more than code. They deserve innovation."
                 delay={150}
@@ -63,7 +61,7 @@ export default function Home() {
               delay={25}
               animateBy="words"
               direction="bottom"
-              className="text-text-secondary text-lg leading-relaxed max-w-xl mx-auto lg:mx-0 mb-10 justify-center lg:justify-start text-center lg:text-left"
+              className="text-text-secondary text-lg leading-relaxed max-w-xl mx-auto lg:mx-0 mb-10 justify-center lg:justify-start text-center lg:text-left break-words"
             />
 
             <div className="flex flex-wrap gap-4 justify-center lg:justify-start">
@@ -96,35 +94,10 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ══════════════════════════════════════════════════════════════
-          STATS
-      ══════════════════════════════════════════════════════════════ */}
-      <section className="py-20">
-        <div className="max-w-5xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-5">
-          {statsData.map((stat, i) => (
-            <motion.div
-              key={stat.label}
-              variants={fadeUp}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.3 }}
-              transition={{ delay: i * 0.08 }}
-            >
-              <SpotlightCard spotlightColor={SPOTLIGHT_PINK} className="text-center h-full">
-                <StatCounter value={stat.value} suffix={stat.suffix} />
-                <p className="text-text-secondary text-sm mt-2 font-medium">{stat.label}</p>
-              </SpotlightCard>
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
-      {/* ══════════════════════════════════════════════════════════════
-          SERVICES PREVIEW
-      ══════════════════════════════════════════════════════════════ */}
-      <section className="relative py-24 overflow-hidden">
+      {/* SERVICES PREVIEW */}
+      <section className="relative py-24 overflow-hidden w-full">
         <GradientBlobs />
-        <div className="relative z-10 max-w-7xl mx-auto px-6">
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-6">
           <motion.div
             className="text-center mb-16"
             variants={fadeUp}
@@ -135,10 +108,10 @@ export default function Home() {
             <span className="inline-block text-xs font-bold tracking-widest uppercase text-brand-purple-accent bg-brand-purple-muted px-4 py-1.5 rounded-full mb-4">
               What We Do
             </span>
-            <h2 className="font-heading font-extrabold text-4xl md:text-5xl text-white mb-4">
+            <h2 className="font-heading font-extrabold text-4xl md:text-5xl text-white mb-4 break-words">
               Services Built for Growth
             </h2>
-            <p className="text-text-secondary text-lg max-w-2xl mx-auto">
+            <p className="text-text-secondary text-lg max-w-2xl mx-auto break-words">
               From idea to deployment — we cover every layer of the modern tech stack.
             </p>
           </motion.div>
@@ -154,17 +127,18 @@ export default function Home() {
                   whileInView="visible"
                   viewport={{ once: true, amount: 0.2 }}
                   transition={{ delay: i * 0.07 }}
+                  className="w-full"
                 >
-                  <SpotlightCard spotlightColor={SPOTLIGHT_PURPLE} className="group h-full flex flex-col">
+                  <SpotlightCard spotlightColor={SPOTLIGHT_PURPLE} className="group h-full flex flex-col p-6 text-left">
                     <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-brand-purple-accent mb-6 transition-all duration-300 group-hover:scale-110"
                       style={{ background: 'rgba(124,58,237,0.15)', border: '1px solid rgba(139,92,246,0.2)' }}
                     >
                       <Icon size={20} />
                     </div>
-                    <h3 className="font-heading font-bold text-lg text-white mb-3 group-hover:text-brand-purple-accent transition-colors duration-300">
+                    <h3 className="font-heading font-bold text-lg text-white mb-3 group-hover:text-brand-purple-accent transition-colors duration-300 break-words">
                       {service.title}
                     </h3>
-                    <p className="text-text-secondary text-sm leading-relaxed mb-4 flex-1">
+                    <p className="text-text-secondary text-sm leading-relaxed mb-4 flex-1 break-words">
                       {service.description}
                     </p>
                     <Link
@@ -187,11 +161,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ══════════════════════════════════════════════════════════════
-          WHY CHOOSE US
-      ══════════════════════════════════════════════════════════════ */}
-      <section className="py-24">
-        <div className="max-w-7xl mx-auto px-6">
+      {/* WHY CHOOSE US */}
+      <section className="py-24 w-full">
+        <div className="max-w-7xl mx-auto px-6 w-full">
           <motion.div
             className="text-center mb-16"
             variants={fadeUp}
@@ -202,10 +174,10 @@ export default function Home() {
             <span className="inline-block text-xs font-bold tracking-widest uppercase text-brand-purple-accent bg-brand-purple-muted px-4 py-1.5 rounded-full mb-4">
               Why Lucuma Innovations
             </span>
-            <h2 className="font-heading font-extrabold text-4xl md:text-5xl text-white mb-4">
+            <h2 className="font-heading font-extrabold text-4xl md:text-5xl text-white mb-4 break-words">
               The Lucuma Difference
             </h2>
-            <p className="text-text-secondary text-lg max-w-2xl mx-auto">
+            <p className="text-text-secondary text-lg max-w-2xl mx-auto break-words">
               Young, passionate, and technically elite. We bring a rare combination of speed and quality.
             </p>
           </motion.div>
@@ -221,15 +193,16 @@ export default function Home() {
                   whileInView="visible"
                   viewport={{ once: true, amount: 0.2 }}
                   transition={{ delay: i * 0.08 }}
+                  className="w-full"
                 >
-                  <SpotlightCard spotlightColor={SPOTLIGHT_PINK} className="h-full">
+                  <SpotlightCard spotlightColor={SPOTLIGHT_PINK} className="h-full p-6 text-left">
                     <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-purple to-brand-purple-light flex items-center justify-center text-white mb-5 shadow-lg">
                       <Icon size={20} />
                     </div>
-                    <h3 className="font-heading font-bold text-lg text-white mb-3">
+                    <h3 className="font-heading font-bold text-lg text-white mb-3 break-words">
                       {item.title}
                     </h3>
-                    <p className="text-text-secondary text-sm leading-relaxed">
+                    <p className="text-text-secondary text-sm leading-relaxed break-words">
                       {item.description}
                     </p>
                   </SpotlightCard>
@@ -240,12 +213,10 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ══════════════════════════════════════════════════════════════
-          PROCESS TIMELINE
-      ══════════════════════════════════════════════════════════════ */}
-      <section className="relative py-24 overflow-hidden">
+      {/* PROCESS TIMELINE */}
+      <section className="relative py-24 overflow-hidden w-full">
         <GradientBlobs />
-        <div className="relative z-10 max-w-7xl mx-auto px-6">
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-6">
           <motion.div
             className="text-center mb-16"
             variants={fadeUp}
@@ -256,10 +227,10 @@ export default function Home() {
             <span className="inline-block text-xs font-bold tracking-widest uppercase text-brand-purple-accent bg-brand-purple-muted px-4 py-1.5 rounded-full mb-4">
               Our Process
             </span>
-            <h2 className="font-heading font-extrabold text-4xl md:text-5xl text-white mb-4">
+            <h2 className="font-heading font-extrabold text-4xl md:text-5xl text-white mb-4 break-words">
               How We Work
             </h2>
-            <p className="text-text-secondary text-lg max-w-2xl mx-auto">
+            <p className="text-text-secondary text-lg max-w-2xl mx-auto break-words">
               A transparent, milestone-driven process from first call to live launch.
             </p>
           </motion.div>
@@ -267,11 +238,10 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ══════════════════════════════════════════════════════════════
-          TESTIMONIALS
-      ══════════════════════════════════════════════════════════════ */}
-      <section className="py-24">
-        <div className="max-w-7xl mx-auto px-6">
+      {/* WHY FOUNDERS CHOOSE TO WORK WITH US */}
+      <section className="py-24 relative overflow-hidden w-full">
+        <GradientBlobs />
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-6">
           <motion.div
             className="text-center mb-16"
             variants={fadeUp}
@@ -280,42 +250,71 @@ export default function Home() {
             viewport={{ once: true }}
           >
             <span className="inline-block text-xs font-bold tracking-widest uppercase text-brand-purple-accent bg-brand-purple-muted px-4 py-1.5 rounded-full mb-4">
-              Client Stories
+              Our Commitment
             </span>
-            <h2 className="font-heading font-extrabold text-4xl md:text-5xl text-white mb-4">
-              What Our Clients Say
+            <h2 className="font-heading font-extrabold text-4xl md:text-5xl text-white mb-4 break-words">
+              Why Founders Choose to Work With Us
             </h2>
+            <p className="text-text-secondary text-base sm:text-lg max-w-2xl mx-auto leading-relaxed break-words">
+              We provide full personal dedication and founder-led execution for your product, bypassing agency bureaucracy.
+            </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {testimonialsData.map((t, i) => (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              {
+                title: "Full Personal Attention",
+                description: "Direct founder-led communication and execution. Your project gets our absolute focus, completely free of account managers or agency queues.",
+                icon: <UserCheck size={24} className="text-brand-purple-accent" />
+              },
+              {
+                title: "Transparent Process",
+                description: "A clear, collaborative workflow from initial discovery, proposal mapping, sprint builds, and product deployment to post-launch care.",
+                icon: <Workflow size={24} className="text-brand-purple-accent" />
+              },
+              {
+                title: "Milestone Payments",
+                description: "Reduce your risk. Pay only as project phases are completed and verified, with absolutely zero upfront sign-on costs required.",
+                icon: <CreditCard size={24} className="text-brand-purple-accent" />
+              },
+              {
+                title: "30-Day Support Guarantee",
+                description: "We resolve bugs, monitor performance, and provide updates for 30 days after launch to ensure your product runs smoothly.",
+                icon: <ShieldCheck size={24} className="text-brand-purple-accent" />
+              },
+              {
+                title: "Modern Stack & Practices",
+                description: "Built on high-performance frameworks, robust API structures, and clean modular code for maximum scalability and speed.",
+                icon: <Cpu size={24} className="text-brand-purple-accent" />
+              },
+              {
+                title: "Founding-Client Pricing",
+                description: "Benefit from exclusive pricing flexibility and close developer alignment reserved for our early launch partners.",
+                icon: <Sparkles size={24} className="text-brand-purple-accent" />
+              }
+            ].map((card, i) => (
               <motion.div
-                key={t.id}
+                key={card.title}
                 variants={fadeUp}
                 initial="hidden"
                 whileInView="visible"
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ delay: i * 0.1 }}
+                viewport={{ once: true, amount: 0.15 }}
+                transition={{ delay: i * 0.08 }}
+                className="w-full"
               >
-                <SpotlightCard spotlightColor={SPOTLIGHT_DEEP} className="h-full flex flex-col gap-5">
-                  {/* Stars */}
-                  <div className="flex gap-1">
-                    {Array.from({ length: t.rating }).map((_, s) => (
-                      <span key={s} className="text-brand-purple-accent text-lg">★</span>
-                    ))}
+                <SpotlightCard spotlightColor={SPOTLIGHT_DEEP} className="h-full flex flex-col p-6 text-left">
+                  <div 
+                    className="w-12 h-12 rounded-2xl flex items-center justify-center mb-6 transition-all duration-300 group-hover:scale-105"
+                    style={{ background: 'rgba(124,58,237,0.15)', border: '1px solid rgba(139,92,246,0.2)' }}
+                  >
+                    {card.icon}
                   </div>
-                  <p className="text-text-secondary text-sm leading-relaxed flex-1 italic">
-                    "{t.quote}"
+                  <h3 className="font-heading font-bold text-lg text-white mb-3 break-words">
+                    {card.title}
+                  </h3>
+                  <p className="text-text-secondary text-sm leading-relaxed flex-1 break-words">
+                    {card.description}
                   </p>
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${t.avatarColor} flex items-center justify-center text-white font-bold text-sm flex-shrink-0`}>
-                      {t.name.charAt(0)}
-                    </div>
-                    <div>
-                      <p className="font-semibold text-white text-sm">{t.name}</p>
-                      <p className="text-text-secondary text-xs">{t.role}</p>
-                    </div>
-                  </div>
                 </SpotlightCard>
               </motion.div>
             ))}
@@ -323,10 +322,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ══════════════════════════════════════════════════════════════
-          CTA BANNER
-      ══════════════════════════════════════════════════════════════ */}
-      <section className="relative py-24 overflow-hidden">
+      {/* CTA BANNER */}
+      <section className="relative py-24 overflow-hidden w-full">
         <GradientBlobs />
         <motion.div
           className="relative z-10 max-w-4xl mx-auto px-6 text-center"
@@ -336,16 +333,16 @@ export default function Home() {
           viewport={{ once: true }}
         >
           <SpotlightCard spotlightColor={SPOTLIGHT_PINK}>
-            <h2 className="font-heading font-extrabold text-3xl sm:text-4xl md:text-5xl text-white mb-6">
+            <h2 className="font-heading font-extrabold text-3xl sm:text-4xl md:text-5xl text-white mb-6 break-words">
               Ready to Build Something{' '}
               <span className="text-brand-purple-accent">Extraordinary?</span>
             </h2>
-            <p className="text-text-secondary text-lg mb-10 max-w-xl mx-auto leading-relaxed">
-              Tell us about your project and get a free consultation and detailed quote within 24 hours.
+            <p className="text-text-secondary text-lg mb-10 max-w-xl mx-auto leading-relaxed break-words">
+              Tell us about your project and we'll reach out to discuss your requirements within 24 hours.
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
               <Link to="/get-started" className="btn-neumorphic-primary flex items-center gap-2 px-10 py-4 text-base">
-                Get a Free Quote <FiArrowRight />
+                Start Your Project <FiArrowRight />
               </Link>
               <Link to="/contact" className="btn-neumorphic flex items-center gap-2 px-10 py-4 text-base">
                 Contact Us

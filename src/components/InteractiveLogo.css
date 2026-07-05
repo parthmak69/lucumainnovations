@@ -2,6 +2,7 @@
   position: relative;
   width: 26rem;
   height: 26rem;
+  max-width: 100vw;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -120,4 +121,37 @@
   height: 8px;
   background-color: #e945f5;
   border-radius: 2px;
+}
+
+/* Mobile Responsive Adjustments for 3D Cube */
+@media (max-width: 480px) {
+  .interactive-logo-container {
+    width: 18rem;
+    height: 18rem;
+  }
+  .logo-glow-backplate {
+    width: 14rem;
+    height: 14rem;
+  }
+  .logo-3d-box-wrapper {
+    width: 11rem;
+    height: 11rem;
+  }
+  .cube-face {
+    width: 11rem;
+    height: 11rem;
+  }
+  .face-front   { transform: rotateY(0deg) translateZ(5.5rem); }
+  .face-back    { transform: rotateY(180deg) translateZ(5.5rem); }
+  .face-left    { transform: rotateY(-90deg) translateZ(5.5rem); }
+  .face-right   { transform: rotateY(90deg) translateZ(5.5rem); }
+  .face-top     { transform: rotateX(90deg) translateZ(5.5rem); }
+  .face-bottom  { transform: rotateX(-90deg) translateZ(5.5rem); }
+
+  .logo-graphic-inside-cube {
+    width: 8.5rem;
+    height: 8.5rem;
+    top: 1.25rem;
+    left: 1.25rem;
+  }
 }
