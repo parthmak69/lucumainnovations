@@ -47,10 +47,10 @@ export default function InteractiveTimeline() {
               variants={itemVariants}
               className={`relative flex flex-col sm:flex-row items-start ${
                 isEven ? 'sm:flex-row-reverse' : ''
-              } justify-between`}
+              } justify-between w-full`}
             >
               {/* Timeline Center Node (Dot) */}
-              <div className="absolute left-8 md:left-1/2 top-6 w-8 h-8 rounded-full bg-card-light border-4 border-brand-purple shadow-neumorphic-flat flex items-center justify-center transform -translate-x-1/2 z-10 select-none">
+              <div className="absolute left-8 md:left-1/2 top-6 w-8 h-8 rounded-full bg-card-light border-4 border-brand-purple shadow-neumorphic-flat items-center justify-center transform -translate-x-1/2 z-10 select-none hidden sm:flex">
                 <div className="w-2.5 h-2.5 rounded-full bg-brand-purple animate-pulse" />
               </div>
 
@@ -58,7 +58,7 @@ export default function InteractiveTimeline() {
               <div className="w-full sm:w-[45%] hidden sm:block" />
 
               {/* Content Card Panel */}
-              <div className="w-full sm:w-[45%] pl-12 sm:pl-0">
+              <div className="w-full sm:w-[45%] pl-0 sm:pl-0">
                 <SpotlightCard
                   spotlightColor="rgba(124, 58, 237, 0.25)"
                   className="p-6 md:p-8 relative overflow-hidden group hover:border-brand-purple/20 transition-all duration-300"

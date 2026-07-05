@@ -21,14 +21,14 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
         {/* Brand Block */}
         <div className="space-y-4">
-          <Link to="/" className="flex items-center gap-2 group">
+          <a href="/" className="flex items-center gap-2 group">
             <div className="w-9 h-9 flex items-center justify-center shadow-sm">
               <img src={logoUrl} alt="Lucuma Innovations logo" className="w-full h-full object-contain" />
             </div>
             <span className="font-heading font-extrabold text-lg tracking-tight text-text-primary">
               Lucuma <span className="text-brand-purple">Innovations</span>
             </span>
-          </Link>
+          </a>
           <p className="text-sm text-text-secondary leading-relaxed">
             Founded by student developers to build modern digital products. We deliver high-performance web apps, mobile apps, and custom business automations.
           </p>

@@ -25,14 +25,20 @@ function ScrollToTop() {
 }
 
 function App() {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => {
+    // Check if the site has already loaded in the current browser session
+    return !sessionStorage.getItem('hasLoadedBefore');
+  });
 
   useEffect(() => {
+    if (!loading) return;
+
     const timer = setTimeout(() => {
       setLoading(false);
+      sessionStorage.setItem('hasLoadedBefore', 'true');
     }, 1300);
     return () => clearTimeout(timer);
-  }, []);
+  }, [loading]);
 
   return (
     <Router>
