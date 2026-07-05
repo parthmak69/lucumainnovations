@@ -6,7 +6,7 @@
       "destination": "https://lucuma-backend.onrender.com/api/:path*"
     },
     {
-      "source": "/((?!api/|assets/|favicon.svg|logo.png).*)",
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ]
