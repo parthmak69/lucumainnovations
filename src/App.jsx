@@ -26,8 +26,13 @@ function ScrollToTop() {
 
 function App() {
   const [loading, setLoading] = useState(() => {
-    // Check if the site has already loaded in the current browser session
-    return !sessionStorage.getItem('hasLoadedBefore');
+    try {
+      // Check if sessionStorage is available and has loaded before
+      return !sessionStorage.getItem('hasLoadedBefore');
+    } catch (e) {
+      // Fallback if sessionStorage is disabled or throws a security exception
+      return true;
+    }
   });
 
   useEffect(() => {
@@ -35,7 +40,11 @@ function App() {
 
     const timer = setTimeout(() => {
       setLoading(false);
-      sessionStorage.setItem('hasLoadedBefore', 'true');
+      try {
+        sessionStorage.setItem('hasLoadedBefore', 'true');
+      } catch (e) {
+        // Ignore storage errors in restricted contexts
+      }
     }, 1300);
     return () => clearTimeout(timer);
   }, [loading]);
