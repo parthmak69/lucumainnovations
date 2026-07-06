@@ -1,4 +1,5 @@
 {
+  "version": 2,
   "cleanUrls": true,
   "rewrites": [
     {
@@ -6,7 +7,7 @@
       "destination": "https://lucuma-backend.onrender.com/api/:path*"
     },
     {
-      "source": "/((?!api/|assets/|_next/|static/).*)",
+      "source": "/((?!api/|assets/|static/).*)",
       "destination": "/index.html"
     }
   ]

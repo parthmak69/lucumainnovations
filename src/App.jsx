@@ -15,7 +15,6 @@ const GetStarted = lazy(() => import('./pages/GetStarted'));
 const ENABLED_WAVES = ['top', 'middle', 'bottom'];
 const LINES_GRADIENT = ['#e945f5', '#6f6f6f', '#6a6a6a'];
 
-// Scroll resetting component on route navigation change
 function ScrollToTop() {
   const { pathname } = useLocation();
   useEffect(() => {
@@ -27,10 +26,8 @@ function ScrollToTop() {
 function App() {
   const [loading, setLoading] = useState(() => {
     try {
-      // Check if sessionStorage is available and has loaded before
       return !sessionStorage.getItem('hasLoadedBefore');
     } catch (e) {
-      // Fallback if sessionStorage is disabled or throws a security exception
       return true;
     }
   });
@@ -43,7 +40,7 @@ function App() {
       try {
         sessionStorage.setItem('hasLoadedBefore', 'true');
       } catch (e) {
-        // Ignore storage errors in restricted contexts
+        // Ignore storage constraints
       }
     }, 1300);
     return () => clearTimeout(timer);
@@ -53,7 +50,6 @@ function App() {
     <Router>
       <ScrollToTop />
 
-      {/* ── Fixed WebGL Background (behind everything) ── */}
       <div className="fixed inset-0" style={{ zIndex: 0 }}>
         <Suspense fallback={null}>
           <FloatingLines
@@ -75,7 +71,6 @@ function App() {
         />
       </div>
 
-      {/* ── App content ── */}
       <div className="relative" style={{ zIndex: 1 }}>
         <AnimatePresence mode="wait">
           {loading ? (
@@ -138,7 +133,7 @@ function App() {
               className="flex flex-col min-h-screen"
             >
               <Navbar />
-              <main className="flex-grow">
+              <main className="grow">
                 <Suspense fallback={null}>
                   <Routes>
                     <Route path="/"            element={<Home />} />
