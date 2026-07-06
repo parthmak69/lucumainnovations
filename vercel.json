@@ -1,15 +1,15 @@
 {
   "version": 2,
   "cleanUrls": true,
-  "framework": "vite",
-  "rewrites": [
+  "routes": [
+    { "handle": "filesystem" },
     {
-      "source": "/api/:path*",
-      "destination": "https://lucuma-backend.onrender.com/api/:path*"
+      "src": "/api/(.*)",
+      "dest": "https://lucuma-backend.onrender.com/api/$1"
     },
     {
-      "source": "/((?!api/|assets/|static/).*)",
-      "destination": "/index.html"
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ]
 }
