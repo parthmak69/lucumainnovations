@@ -43,9 +43,8 @@ export default function Navbar() {
         }`}
       >
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-          {/* Logo Brand */}
-          <a
-            href="/"
+          <Link
+            to="/"
             className="flex items-center gap-2 group focus:outline-none"
           >
             <div className="w-10 h-10 flex items-center justify-center transform group-hover:scale-105 transition-transform duration-300">
@@ -54,7 +53,7 @@ export default function Navbar() {
             <span className="font-heading font-extrabold text-base min-[400px]:text-lg sm:text-xl tracking-tight text-text-primary group-hover:text-brand-purple transition-colors duration-300">
               Lucuma <span className="text-brand-purple">Innovations</span>
             </span>
-          </a>
+          </Link>
 
           {/* Desktop Navigation Links */}
           <div className="hidden md:flex items-center gap-1.5 bg-bg-flat/40 p-1 rounded-full border border-gray-200/30">
