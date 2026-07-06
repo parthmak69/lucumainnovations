@@ -105,7 +105,7 @@ export default function Navbar() {
             transition={{ duration: 0.2 }}
             className="fixed inset-0 z-30 pt-24 pb-8 px-6 bg-bg-light/95 backdrop-blur-lg flex flex-col md:hidden"
           >
-            <div className="flex flex-col gap-4 mt-8 flex-grow">
+            <div className="flex flex-col gap-4 mt-8 grow">
               {navLinks.map((link) => (
                 <NavLink
                   key={link.name}
