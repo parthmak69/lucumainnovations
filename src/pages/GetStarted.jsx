@@ -122,7 +122,7 @@ export default function GetStarted() {
     return await fetch(`${API_BASE_URL}/send-otp`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: clientData.email })
+      body: JSON.stringify({ email: clientData.email, phone: clientData.phone })
     });
   };
 
@@ -185,7 +185,7 @@ export default function GetStarted() {
       const verifyRes = await fetch(`${API_BASE_URL}/verify-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: clientData.email, otp: otp })
+        body: JSON.stringify({ email: clientData.email, otp: otp.trim() })
       });
 
       if (!verifyRes.ok) {
@@ -344,8 +344,8 @@ export default function GetStarted() {
 
                       <div className="space-y-1.5">
                         <label className="text-xs font-heading font-bold text-white uppercase tracking-wider">Phone Number*</label>
-                        <div className="flex gap-3">
-                          <div className="relative w-28 shrink-0">
+                        <div className="flex flex-col sm:flex-row gap-3">
+                          <div className="relative w-full sm:w-28 shrink-0">
                             <select
                               value={clientData.countryDialCode}
                               onChange={(e) => setClientData({ ...clientData, countryDialCode: e.target.value })}

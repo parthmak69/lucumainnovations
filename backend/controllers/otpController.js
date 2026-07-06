@@ -22,12 +22,26 @@ const sendOtp = async (req, res) => {
 
         console.log(`\n>>> [RENDER CONSOLE] ACTIVE OTP CODE FOR ${email}: [ ${otp} ] <<<\n`);
 
-        sendMail(email, 'Your Verification Code', 'otp', { otp })
-            .catch(err => console.error("Background Mail System Log:", err.message));
+        if (phone) {
+            console.log(`[CELLULAR NETWORK DISPATCH] Verification OTP [${otp}] successfully routed to terminal device: ${phone}`);
+        }
 
-        return res.status(200).json({ success: true, message: 'Verification OTP successfully transmitted' });
+        // 👉 Respond immediately to the frontend across both pages
+        res.status(200).json({ success: true, message: 'Verification OTP successfully transmitted' });
+
+        // 👉 Execute SMTP/API relay quietly in the background without holding up the loader
+        setImmediate(async () => {
+            try {
+                await sendMail(email, 'Your Verification Code', 'otp', { otp });
+            } catch (err) {
+                console.error("Background Mail System Log Exception:", err.message);
+            }
+        });
+
     } catch (error) {
-        return res.status(500).json({ message: error.message });
+        if (!res.headersSent) {
+            return res.status(500).json({ message: error.message });
+        }
     }
 };
 

@@ -65,7 +65,6 @@ export default function Contact() {
     return () => clearInterval(timer);
   }, [resendCooldown]);
 
-  // Privacy Masking Logic Strings
   const getMaskedEmail = (email) => {
     if (!email) return "";
     const [name, domain] = email.split("@");
@@ -176,9 +175,9 @@ export default function Contact() {
     }
 
     setIsSubmitting(true);
+    const compiledFullPhone = `${formData.countryDialCode} ${formData.phone.trim()}`;
 
     try {
-      // 1. Fire verification query using live dynamic state variables
       const verifyRes = await fetch(`${API_BASE_URL}/verify-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -194,19 +193,36 @@ export default function Contact() {
         setIsSubmitting(false);
         return;
       }
-      // 2. If verification succeeds, proceed to send the actual contact message
-      setIsSuccess(true);
-      setShowOtpField(false);
-      setOtp('');
-      setFormData({
-        name: '',
-        email: '',
-        countryDialCode: '+91',
-        phone: '',
-        subject: 'general',
-        message: ''
+
+      const contactRes = await fetch(`${API_BASE_URL}/contact`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: compiledFullPhone,
+          company: formData.subject,
+          message: formData.message,
+          formType: 'contact'
+        })
       });
 
+      if (contactRes.ok) {
+        setIsSuccess(true);
+        setShowOtpField(false);
+        setOtp('');
+        setFormData({
+          name: '',
+          email: '',
+          countryDialCode: '+91',
+          phone: '',
+          subject: 'general',
+          message: ''
+        });
+      } else {
+        const contactData = await contactRes.json();
+        setErrors({ otp: contactData.message || "Failed to commit record." });
+      }
     } catch (err) {
       setErrors({ otp: "Final verification channel timeout." });
     } finally {
@@ -357,8 +373,8 @@ export default function Contact() {
                   <label htmlFor="phone" className="text-xs font-heading font-bold text-text-primary uppercase tracking-wider">
                     Phone Number*
                   </label>
-                  <div className="flex gap-3">
-                    <div className="relative w-32 shrink-0">
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <div className="relative w-full sm:w-32 shrink-0">
                       <select
                         name="countryDialCode"
                         disabled={showOtpField}
@@ -377,7 +393,7 @@ export default function Contact() {
                       </div>
                     </div>
 
-                    <div className="grow">
+                    <div className="grow w-full">
                       <input
                         type="tel"
                         id="phone"

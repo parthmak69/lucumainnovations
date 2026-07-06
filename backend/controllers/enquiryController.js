@@ -25,30 +25,45 @@ const createEnquiry = async (req, res) => {
         await newEnquiry.save();
         await Otp.deleteOne({ email });
 
-        if (typeOfForm === 'get-started') {
-
-            await sendMail(email, "Your Project Onboarding Brief Received", 'get_started_confirmation', { name });
-
-            await sendMail(
-                process.env.ADMIN_EMAIL,
-                '[ONBOARDING ALERT] New Project Brief Received',
-                'get_started_admin',
-                { name, email, company: company || 'N/A', message }
-            );
-        } else {
-            await sendMail(email, "We've received your enquiry", 'confirmation', { name });
-
-            await sendMail(
-                process.env.ADMIN_EMAIL,
-                '[CONTACT ALERT] New Enquiry Received',
-                'admin',
-                { name, email, phone: phone || 'N/A', company: company || 'N/A', message }
-            );
-        }
-
+        // 👉 CRITICAL FIX: Return response IMMEDIATELY to drop the frontend loading spinners instantly!
         res.status(201).json({ success: true, message: 'Enquiry processed and recorded successfully' });
+
+        // 👉 OFF-LOAD MAILS: Run dispatches in background threads using non-blocking asynchronous execution
+        setImmediate(async () => {
+            try {
+                if (typeOfForm === 'get-started') {
+                    // User Confirmation
+                    await sendMail(email, "Your Project Onboarding Brief Received", 'get_started_confirmation', { name });
+
+                    // Admin Alert Notification
+                    await sendMail(
+                        process.env.ADMIN_EMAIL,
+                        '[ONBOARDING ALERT] New Project Brief Received',
+                        'get_started_admin',
+                        { name, email, phone: phone || 'Not Provided', company: company || 'Not Provided', message }
+                    );
+                } else {
+                    // User Confirmation
+                    await sendMail(email, "We've received your enquiry", 'confirmation', { name });
+
+                    // Admin Alert Notification
+                    await sendMail(
+                        process.env.ADMIN_EMAIL,
+                        '[CONTACT ALERT] New Enquiry Received',
+                        'admin',
+                        { name, email, phone: phone || 'Not Provided', company: company || 'Not Provided', message }
+                    );
+                }
+            } catch (mailError) {
+                console.error("Background Operational Mailer System Exception:", mailError.message);
+            }
+        });
+
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        // Prevent application hanging if errors break before headers are written
+        if (!res.headersSent) {
+            return res.status(500).json({ message: error.message });
+        }
     }
 };
 

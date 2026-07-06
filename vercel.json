@@ -1,16 +1,13 @@
 {
   "cleanUrls": true,
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "https://lucuma-backend.onrender.com/api/$1"
+      "source": "/api/:path*",
+      "destination": "https://lucuma-backend.onrender.com/api/:path*"
     },
     {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/((?!api/|assets/|_next/|static/).*)",
+      "destination": "/index.html"
     }
   ]
 }
