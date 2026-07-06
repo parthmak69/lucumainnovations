@@ -91,7 +91,7 @@ export default function GetStarted() {
         setValidationError('Please enter a valid email address');
         return false;
       }
-      if (!/^[0-9]{7,14}$/.test(clientData.phone.trim().replace(/[\s\-]/g, ''))) {
+      if (!/^[0-9]{7,14}$/.test(clientData.phone.trim().replace(/[\s-]/g, ''))) {
         setValidationError('Please enter a valid phone number');
         return false;
       }

@@ -87,7 +87,7 @@ export default function Contact() {
 
     if (!formData.phone.trim()) {
       tempErrors.phone = 'Please fill in all required fields';
-    } else if (!/^[0-9]{7,14}$/.test(formData.phone.trim().replace(/[\s\-]/g, ''))) {
+    } else if (!/^[0-9]{7,14}$/.test(formData.phone.trim().replace(/[\s-]/g, ''))) {
       tempErrors.phone = 'Please enter a valid phone number';
     }
 
