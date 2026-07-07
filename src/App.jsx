@@ -1,6 +1,7 @@
 import { useState, useEffect, Suspense, lazy } from 'react';
 import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import logoUrl from './assets/logo.png';
@@ -49,6 +50,7 @@ function App() {
   return (
     <Router>
       <ScrollToTop />
+      <SpeedInsights />
 
       {/* Background canvas effects container */}
       <div className="fixed inset-0" style={{ zIndex: 0 }}>
