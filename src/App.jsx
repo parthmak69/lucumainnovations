@@ -19,10 +19,26 @@ function AnalyticsTracker() {
   const location = useLocation();
 
   useEffect(() => {
+    // 1. Send data to Google Analytics
     if (typeof window.gtag === 'function') {
       window.gtag('config', 'G-EBDWGBLBD1', {
         page_path: location.pathname + location.hash,
       });
+    }
+
+    // Dynamically update browser titles based on current route
+    const path = location.pathname;
+    if (path === '/' || path === '') {
+      document.title = 'Lucuma Innovations';
+    } else {
+      // Formats the path snippet (e.g., "/get-started" becomes "Get Started")
+      const pageName = path
+        .replace('/', '')
+        .split('-')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+      
+      document.title = `Lucuma Innovations :- ${pageName}`;
     }
   }, [location]);
 
