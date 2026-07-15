@@ -15,6 +15,20 @@ const GetStarted = lazy(() => import('./pages/GetStarted'));
 const ENABLED_WAVES = ['top', 'middle', 'bottom'];
 const LINES_GRADIENT = ['#e945f5', '#6f6f6f', '#6a6a6a'];
 
+function AnalyticsTracker() {
+  const location = useLocation();
+
+  useEffect(() => {
+    if (typeof window.gtag === 'function') {
+      window.gtag('config', 'G-EBDWGBLBD1', {
+        page_path: location.pathname + location.hash,
+      });
+    }
+  }, [location]);
+
+  return null;
+}
+
 function ScrollToTop() {
   const { pathname } = useLocation();
   useEffect(() => {
@@ -49,6 +63,7 @@ function App() {
   return (
     <Router>
       <ScrollToTop />
+      <AnalyticsTracker />
 
       {/* Background canvas effects container */}
       <div className="fixed inset-0" style={{ zIndex: 0 }}>
