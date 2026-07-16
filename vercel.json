@@ -2,7 +2,6 @@
   "version": 2,
   "cleanUrls": true,
   "routes": [
-    { "handle": "filesystem" },
     {
       "src": "/api/(.*)",
       "dest": "https://lucuma-backend.onrender.com/api/$1"

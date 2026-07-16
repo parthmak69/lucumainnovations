@@ -1,17 +1,17 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FiGithub, FiTwitter, FiLinkedin, FiInstagram, FiMail, FiMapPin, FiPhone } from 'react-icons/fi';
+import { FiGithub, FiLinkedin, FiInstagram, FiMail, FiMapPin, FiPhone } from 'react-icons/fi';
 import logoUrl from '../assets/logo.png';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   const socialLinks = [
-    { icon: FiGithub, href: 'https://github.com', label: 'GitHub' },
-    { icon: FiTwitter, href: 'https://twitter.com', label: 'Twitter' },
-    { icon: FiLinkedin, href: 'https://linkedin.com', label: 'LinkedIn' },
-    { icon: FiInstagram, href: 'https://instagram.com/lucumainnovations/', label: 'Instagram' }
-  ];
+  { icon: FiLinkedin, href: 'https://linkedin.com', label: 'LinkedIn' },
+  { icon: FiGithub, href: 'https://github.com/lucumainnovations-ops', label: 'GitHub' },
+  { icon: FiInstagram, href: 'https://instagram.com/lucumainnovations/', label: 'Instagram' },
+  { icon: FiMail, href: 'mailto:info@lucumainnovations.com', label: 'Email' }
+];
 
   return (
     <footer className="relative bg-bg-light border-t border-gray-200/50 pt-16 pb-8 overflow-hidden z-10">
