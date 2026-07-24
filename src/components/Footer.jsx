@@ -7,7 +7,7 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   const socialLinks = [
-  { icon: FiLinkedin, href: 'https://linkedin.com/in/lucuma-innovations', label: 'LinkedIn' },
+  { icon: FiLinkedin, href: 'https://linkedin.com/in/lucuma-innovations-656728423', label: 'LinkedIn' },
   { icon: FiGithub, href: 'https://github.com/lucumainnovations-ops', label: 'GitHub' },
   { icon: FiInstagram, href: 'https://instagram.com/lucumainnovations/', label: 'Instagram' },
   { icon: FiMail, href: 'mailto:info@lucumainnovations.com', label: 'Email' }
