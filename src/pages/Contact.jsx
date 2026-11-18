@@ -5,7 +5,8 @@ import { FiMail, FiPhone, FiMapPin, FiCheckCircle, FiAlertCircle, FiSend, FiMess
 import GradientBlobs from '../components/3d/GradientBlobs';
 import SpotlightCard from '../components/SpotlightCard';
 
-const API_BASE_URL = "https://lucuma-backend.onrender.com/api";
+// const API_BASE_URL = "https://lucuma-backend.onrender.com/api";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const countryCodes = [
   { code: '+91', iso: 'IN', flag: '🇮🇳', label: 'India' },

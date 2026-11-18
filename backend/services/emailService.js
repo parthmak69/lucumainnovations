@@ -1,38 +1,92 @@
 const fs = require('fs');
 const path = require('path');
 
-const sendMail = async (to, subject, templateName, placeholders) => {
+const sendMail = async (
+    to,
+    subject,
+    templateName,
+    placeholders = {},
+    options = {}
+) => {
     try {
-        const templatePath = path.join(__dirname, `../templates/${templateName}.html`);
+        // Load email template
+        const templatePath = path.join(
+            __dirname,
+            `../templates/${templateName}.html`
+        );
+
         let htmlContent = fs.readFileSync(templatePath, 'utf8');
 
-        Object.keys(placeholders).forEach((key) => {
-            htmlContent = htmlContent.replace(new RegExp(`{{${key}}}`, 'g'), placeholders[key]);
+        // Replace template placeholders
+        Object.entries(placeholders).forEach(([key, value]) => {
+            htmlContent = htmlContent.replace(
+                new RegExp(`{{${key}}}`, 'g'),
+                String(value ?? '')
+            );
         });
 
-        // Sending via an HTTPS API call on Port 443, bypassing Render's SMTP block entirely
-        const response = await fetch('https://api.resend.com/emails', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                from: 'Lucuma Innovations <info@lucumainnovations.com>',
-                to: [to],
-                subject: subject,
-                html: htmlContent
-            })
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'API delivery failure');
+        // Validate Resend API key
+        if (!process.env.RESEND_API_KEY) {
+            throw new Error('RESEND_API_KEY is not configured');
         }
 
-        return await response.json();
+        // Determine sender and reply-to
+        const from = options.from || process.env.CONTACT_FROM_EMAIL;
+        const replyTo = options.replyTo || process.env.CONTACT_REPLY_TO;
+
+        if (!from || !to) {
+            throw new Error('Email sender or recipient is missing');
+        }
+
+        // EMAIL DEBUGGING
+        console.log('\n========== EMAIL DEBUG ==========');
+        console.log('Recipient:', to);
+        console.log('Subject:', subject);
+        console.log('EMAIL ACTUALLY SENT FROM:', from);
+        console.log('EMAIL REPLY TO:', replyTo);
+        console.log('Template:', templateName);
+        console.log('=================================\n');
+
+        // Resend API payload
+        const payload = {
+            from: from,
+            to: [to],
+            subject: subject,
+            html: htmlContent
+        };
+
+        if (replyTo) {
+            payload.reply_to = replyTo;
+        }
+
+        // Send email using Resend
+        const response = await fetch(
+            'https://api.resend.com/emails',
+            {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            }
+        );
+
+        const responseData = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                responseData.message || 'Resend email delivery failed'
+            );
+        }
+
+        console.log('Resend Email ID:', responseData.id);
+        console.log('Email request accepted successfully.');
+
+        return responseData;
+
     } catch (error) {
-        console.error("HTTP Email Delivery Error:", error.message);
+        console.error('Email Delivery Error:', error.message);
         throw error;
     }
 };
