@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex,nofollow">
+
+    <title>Lucuma Docs | Document Viewer</title>
+
+    <link rel="stylesheet" href="fonts.css">
+    <link rel="stylesheet" href="styles.css">
+
+    <style>
+        body {
+            margin: 0;
+            background: #eef2f7;
+            color: #172033;
+            font-family: Manrope, Arial, sans-serif;
+        }
+
+        .viewer-top {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 5%;
+            background: white;
+            border-bottom: 1px solid #e5eaf0;
+        }
+
+        .viewer-brand {
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        .viewer-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .viewer-actions button,
+        .viewer-actions a {
+            padding: 11px 18px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            background: #172033;
+            color: white;
+        }
+
+        .viewer-actions a {
+            background: #e9edf3;
+            color: #172033;
+        }
+
+        .viewer-wrap {
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 0 16px;
+        }
+
+        .viewer-message {
+            background: white;
+            padding: 40px;
+            border-radius: 14px;
+            text-align: center;
+        }
+
+        .viewer-message.error h2 {
+            color: #b42318;
+        }
+
+        .viewer-document {
+            max-width: 900px;
+            margin: auto;
+            padding: 35px;
+            background: white;
+            box-shadow: 0 8px 35px #17203312;
+        }
+
+        .viewer-document .qr svg {
+            width: 110px;
+            height: 110px;
+        }
+
+        .viewer-qr {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 25px;
+            font-size: 11px;
+            text-align: center;
+        }
+
+        .viewer-qr .qr {
+            width: 110px;
+        }
+
+        .viewer-qr .qr svg {
+            width: 100%;
+            height: auto;
+        }
+
+        .viewer-meta {
+            font-size: 11px;
+            color: #64748b;
+        }
+
+        .viewer-letter-body {
+            line-height: 1.8;
+            font-size: 14px;
+        }
+
+        .viewer-letter-body p {
+            margin: 14px 0;
+        }
+
+        .viewer-signatures {
+            display: flex;
+            justify-content: space-between;
+            gap: 25px;
+            margin-top: 55px;
+            font-size: 12px;
+        }
+
+        .viewer-signatures img {
+            max-width: 110px;
+            max-height: 65px;
+            object-fit: contain;
+        }
+
+        .viewer-certificate {
+            text-align: center;
+            border: 9px double #b69a55;
+            padding: 35px;
+        }
+
+        .viewer-certificate h2 {
+            font-size: 28px;
+            color: #a4863d;
+        }
+
+        .viewer-holder {
+            font-size: 34px;
+            font-weight: 800;
+            margin: 25px 0;
+        }
+
+        .viewer-invoice .two {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .viewer-invoice .box {
+            border: 1px solid #dfe5ed;
+            padding: 15px;
+            margin: 18px 0;
+        }
+
+        .viewer-invoice table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        .viewer-invoice td,
+        .viewer-invoice th {
+            padding: 9px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: left;
+        }
+
+        .viewer-invoice .total {
+            text-align: right;
+            font-size: 18px;
+            font-weight: 800;
+            margin-top: 18px;
+        }
+
+        .viewer-invoice .footer {
+            margin-top: 35px;
+            font-size: 11px;
+            color: #64748b;
+            text-align: center;
+        }
+
+        [hidden] {
+            display: none !important;
+        }
+
+        @media(max-width:650px) {
+            .viewer-document {
+                padding: 18px;
+            }
+
+            .viewer-invoice .two {
+                grid-template-columns: 1fr;
+            }
+
+            .viewer-holder {
+                font-size: 25px;
+            }
+
+            .viewer-top {
+                padding: 12px;
+            }
+        }
+
+        @media print {
+            @page {
+                size: A4;
+                margin: 12mm;
+            }
+
+            .viewer-top {
+                display: none !important;
+            }
+
+            body {
+                background: white;
+            }
+
+            .viewer-wrap {
+                margin: 0;
+                padding: 0;
+                max-width: none;
+            }
+
+            .viewer-document {
+                box-shadow: none;
+                padding: 0;
+                max-width: none;
+            }
+
+            .viewer-qr {
+                break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="viewer-top">
+    <div class="viewer-brand">LUCUMA DOCS</div>
+
+    <div class="viewer-actions">
+        <a href="index.html">Back</a>
+        <button id="printBtn" type="button">Print / PDF</button>
+    </div>
+</header>
+
+<main class="viewer-wrap">
+
+    <div id="loading" class="viewer-message">
+        Loading document...
+    </div>
+
+    <div id="error" class="viewer-message error" hidden>
+        <h2>Document unavailable</h2>
+        <p id="errorMessage"></p>
+    </div>
+
+    <div id="documentContent" hidden></div>
+
+</main>
+
+<!-- Supabase configuration -->
+<script src="./config.js"></script>
+
+<!-- QR Code generator -->
+<script src="./vendor/qrcode.js"></script>
+
+<!-- Document viewer -->
+<script src="./document.js"></script>
+
+</body>
+</html>

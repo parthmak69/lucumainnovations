@@ -44,10 +44,27 @@ create policy s_ins on public.settings for insert with check (public.is_core());
 create policy s_upd on public.settings for update using (public.is_core()) with check (public.is_core());
 
 -- Public certificate check: exact certificate number only, returns no other data.
-create or replace function public.verify_certificate(p_no text) returns json language sql security definer stable set search_path=public as
-$$ select json_build_object('holder',data->>'name','role',data->>'role','start',data->>'start','end',data->>'end',
-  'period',data->>'period','ptype',data->>'ptype','issued',data->>'date','status',status,'number',number)
-   from documents where type='certificate' and number=upper(trim(p_no)) limit 1 $$;
+create or replace function public.verify_certificate(p_no text) returns json
+language sql security definer stable set search_path=public as
+$$
+ select json_build_object(
+   'holder',d.data->>'name',
+   'role',d.data->>'role',
+   'start',d.data->>'start',
+   'end',d.data->>'end',
+   'period',d.data->>'period',
+   'ptype',d.data->>'ptype',
+   'issued',d.data->>'date',
+   'status',d.status,
+   'number',d.number,
+   'issuer_name',coalesce(nullif(d.data->>'issuerName',''),p.name,p.email,'Lucuma Innovations'),
+   'issuer_email',coalesce(nullif(d.data->>'issuerEmail',''),p.email,'')
+ )
+ from public.documents d
+ left join public.profiles p on p.id=d.created_by
+ where d.type='certificate' and d.number=upper(trim(p_no))
+ limit 1
+$$;
 grant execute on function public.verify_certificate(text) to anon, authenticated;
 
 -- After creating YOUR user (Authentication -> Users), make yourself a core member:

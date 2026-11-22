@@ -1,53 +1,470 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self'; script-src 'self'; connect-src https://*.supabase.co"><title>Lucuma Docs</title><link rel="stylesheet" href="fonts.css"><link rel="stylesheet" href="styles.css"></head>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+<meta http-equiv="Content-Security-Policy"
+content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self'; script-src 'self'; connect-src 'self' https://glsbsmgzxsshmrvtwqii.supabase.co https://*.supabase.co;">
+  <title>Lucuma Docs</title>
+  <link rel="stylesheet" href="fonts.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+
 <body data-role="member">
-<div id="login"><div class="bgfx"><i></i><i></i><i></i></div>
- <form class="glass" id="lf"><img src="assets/logo.png" class="vlogo" alt=""><h2>Lucuma Docs</h2><p class="vsub">Team access only. Sign in with your work email.</p>
-  <label>Email</label><input id="le" type="email" required autocomplete="username" placeholder="you@lucumainnovations.com">
-  <label>Password</label><input id="lp" type="password" required autocomplete="current-password" placeholder="••••••••">
-  <button class="btn p" style="width:100%;margin-top:18px">Sign in</button><div class="msg lm" id="lm"></div></form></div>
-<div id="shell" hidden>
-<div class="top" id="nav"><b>LUCUMA DOCS</b><button data-m="letter">Letters</button><button data-m="cert">Certificate</button><button data-m="invoice">Invoice</button><button data-m="hist">History</button><button data-m="team" class="core">Team</button><button data-m="set" class="core">Settings</button><span id="who"></span><button id="out">Sign out</button></div>
-<div class="app" id="app"><div class="panel">
- <div id="f-letter" data-kind="offer" data-ptype="Unpaid">
-  <label>Letter type</label><select id="kind"><option value="offer">Offer letter</option><option value="appt">Appointment letter</option><option value="intern">Internship offer letter</option></select>
-  <label>Name (with title)</label><input id="name" placeholder="Ms. Anita Sharma">
-  <label>Position / internship domain</label><input id="role" placeholder="Frontend Developer">
-  <div class="g2"><div><label>Start / joining date</label><input type="date" id="start"></div><div><label>Offer valid until</label><input type="date" id="valid"></div></div>
-  <div class="ionly"><div class="g2"><div><label>End date</label><input type="date" id="end"></div><div><label>Time period</label><input id="period" placeholder="3 months"></div></div>
-   <div class="g2"><div><label>Internship type</label><select id="ptype"><option>Unpaid</option><option>Paid</option></select></div><div><label>Work mode</label><select id="mode"><option>Remote</option><option>On-site</option><option>Hybrid</option></select></div></div></div>
-  <div id="payw"><label>Compensation / monthly stipend (leave empty to skip)</label><input id="pay" placeholder="INR 5,000 per month"></div>
-  <div class="g2"><div><label>Ref. No.</label><input id="lref"></div><div><label>Letter date</label><input type="date" id="ldate"></div></div>
-  <label>Letter body — {name} {role} {start} {end} {period} {mode} {pay} {valid} fill in automatically; a paragraph is dropped if its value is empty</label><textarea id="body" style="min-height:190px"></textarea>
-  <div class="g2"><div><label>Signatory 1</label><input id="s1n"><input id="s1t" style="margin-top:4px"></div><div><label>Signatory 2</label><input id="s2n"><input id="s2t" style="margin-top:4px"></div></div>
-  <label><input type="checkbox" id="acc" checked style="width:auto"> Include acceptance section</label></div>
- <div id="f-cert" hidden>
-  <label>Intern name</label><input id="cname" placeholder="Anita Sharma">
-  <label>Role / domain</label><input id="crole" placeholder="Frontend Development">
-  <div class="g2"><div><label>Start date</label><input type="date" id="cstart"></div><div><label>End date</label><input type="date" id="cend"></div></div>
-  <div class="g2"><div><label>Time period</label><input id="cperiod" placeholder="3 months"></div><div><label>Internship type</label><select id="cptype"><option>Unpaid</option><option>Paid</option></select></div></div>
-  <div class="g2"><div><label>Issue date</label><input type="date" id="cdate"></div><div><label>Certificate no.</label><input id="cno" readonly></div></div>
-  <label>Remarks — {name} fills in automatically</label><textarea id="cremarks" style="min-height:80px"></textarea>
-  <div class="g2"><div><label>Signatory 1</label><input id="cs1n"><input id="cs1t" style="margin-top:4px"></div><div><label>Signatory 2</label><input id="cs2n"><input id="cs2t" style="margin-top:4px"></div></div>
-  <p class="msg">The QR code only verifies after the certificate is saved. Printing saves it automatically.</p></div>
- <div id="f-invoice" hidden>
-  <label>Client name</label><input id="cn">
-  <div class="g2"><div><label>Email</label><input id="ce"></div><div><label>Contact</label><input id="cc"></div></div>
-  <div class="g2"><div><label>Address</label><input id="ca"></div><div><label>Tax ID</label><input id="ct"></div></div>
-  <div class="g2"><div><label>Invoice number</label><input id="inum"></div><div><label>Invoice type</label><select id="ity"><option>Full Payment Invoice</option><option>Partial Payment Invoice</option><option>Advance Payment Invoice</option><option>Final Payment Invoice</option></select></div></div>
-  <div class="g2"><div><label>Invoice date</label><input type="date" id="idate"></div><div><label>Payment due date</label><input type="date" id="idue"></div></div>
-  <div class="g2"><div><label>Currency</label><select id="cur"><option>USD</option><option>INR</option><option>EUR</option><option>GBP</option></select></div><div><label>Tax % (0 = nil)</label><input type="number" id="tax" value="0" min="0"></div></div>
-  <label>Line items</label><div id="items"></div><button class="btn sm" style="margin-top:8px" id="addit">Add item</button>
-  <div class="g2"><div><label>Total project value (optional)</label><input type="number" id="agr" placeholder="2500"></div><div><label>Payment row label</label><input id="plab" value="Payment Requested"></div></div>
-  <label>Note under breakdown (optional)</label><textarea id="inote" style="min-height:56px"></textarea>
-  <label>Terms (one per line)</label><textarea id="terms" style="min-height:110px"></textarea></div>
- <div class="btns"><button class="btn p" id="save">Save</button><button class="btn" id="pdf">Print / Save as PDF</button><button class="btn" id="new">New</button></div>
- <div class="msg" id="msg"></div></div>
- <div class="stage" id="stage"></div></div>
-<div id="hist" hidden><div class="wrap"><h3>Saved documents</h3><p class="msg" id="hmsg"></p><table class="h" id="ht"></table></div></div>
-<div id="team" hidden><div class="wrap"><h3>Team access</h3><p class="msg">Add a teammate in Supabase → Authentication → Users. They appear here straight away. Core members can manage the team, delete documents and change settings; team members can create and save documents.</p><table class="h" id="tt"></table><div class="msg" id="tmsg"></div></div></div>
-<div id="set" hidden><div class="wrap"><h3>Company details</h3><p class="msg">Shared by the whole team. Bank details are stored in your database, not in the website files.</p><div id="sf"></div>
- <h3>Signatures</h3><div class="g2"><div><label>Signatory 1 (PNG, transparent)</label><input type="file" accept="image/*" id="sig1"></div><div><label>Signatory 2</label><input type="file" accept="image/*" id="sig2"></div></div>
- <div class="g2"><div><label>Invoice authorized signatory</label><input type="file" accept="image/*" id="sig3"></div><div><label><br></label><button class="btn sm" id="clrsig">Remove all signatures</button></div></div>
- <div class="btns"><button class="btn p" id="sset">Save settings</button></div><div class="msg" id="smsg"></div></div></div>
+
+<div id="login">
+  <div class="bgfx"><i></i><i></i><i></i></div>
+
+  <form class="glass" id="lf">
+    <img src="assets/logo.png" class="vlogo" alt="">
+    <h2>Lucuma Docs</h2>
+    <p class="vsub">Team access only. Sign in with your work email.</p>
+
+    <label>Account role</label>
+    <select id="lr" required>
+      <option value="member">Team Member</option>
+      <option value="core">Core Member</option>
+    </select>
+
+    <label>Email</label>
+    <input id="le" type="email" required
+           autocomplete="username"
+           placeholder="you@lucumainnovations.com">
+
+    <label>Password</label>
+    <input id="lp" type="password" required
+           autocomplete="current-password"
+           placeholder="••••••••">
+
+    <button class="btn p" style="width:100%;margin-top:18px">
+      Sign in
+    </button>
+
+    <button type="button" class="forgot" id="forgot">
+      Forgot password? Reset it
+    </button>
+
+    <div class="msg lm" id="lm" aria-live="polite"></div>
+  </form>
+
+  <form class="glass reset-card" id="rf" hidden>
+    <img src="assets/logo.png" class="vlogo" alt="">
+    <h2>Reset password</h2>
+
+    <p class="vsub" id="rsub">
+      Enter your work email. If an account exists, we'll send a reset link.
+    </p>
+
+    <div id="request-reset">
+      <label>Work email</label>
+      <input id="re" type="email" autocomplete="email"
+             placeholder="you@lucumainnovations.com" required>
+
+      <button class="btn p" type="submit"
+              style="width:100%;margin-top:18px">
+        Send reset link
+      </button>
+    </div>
+
+    <div id="choose-password" hidden>
+      <label>New password</label>
+      <input id="rp" type="password" minlength="8"
+             autocomplete="new-password" required
+             placeholder="At least 8 characters">
+
+      <label>Confirm new password</label>
+      <input id="rc" type="password" minlength="8"
+             autocomplete="new-password" required
+             placeholder="Re-enter new password">
+
+      <button class="btn p" type="submit"
+              style="width:100%;margin-top:18px">
+        Update password
+      </button>
+    </div>
+
+    <button type="button" class="forgot" id="back-login">
+      Back to sign in
+    </button>
+
+    <div class="msg lm" id="rm" aria-live="polite"></div>
+  </form>
 </div>
-<script src="config.js"></script><script src="vendor/qrcode.js"></script><script src="app.js"></script></body></html>
+
+<div id="shell" hidden>
+
+  <div class="top" id="nav">
+    <b>LUCUMA DOCS</b>
+
+    <button data-m="letter">Letters</button>
+    <button data-m="cert">Certificate</button>
+    <button data-m="invoice">Invoice</button>
+    <button data-m="hist">History</button>
+    <button data-m="team" class="core">Team</button>
+    <button data-m="set" class="core">Settings</button>
+
+    <span id="who"></span>
+    <button id="out">Sign out</button>
+  </div>
+
+  <div class="app" id="app">
+
+    <div class="panel">
+
+      <!-- LETTER FORM -->
+      <div id="f-letter" data-kind="offer" data-ptype="Unpaid">
+
+        <label>Letter type</label>
+        <select id="kind">
+          <option value="offer">Offer letter</option>
+          <option value="appt">Appointment letter</option>
+          <option value="intern">Internship offer letter</option>
+        </select>
+
+        <label>Name (with title)</label>
+        <input id="name" placeholder="Ms. Anita Sharma">
+
+        <label>Position / internship domain</label>
+        <input id="role" placeholder="Frontend Developer">
+
+        <div class="g2">
+          <div>
+            <label>Start / joining date</label>
+            <input type="date" id="start">
+          </div>
+          <div>
+            <label>Offer valid until</label>
+            <input type="date" id="valid">
+          </div>
+        </div>
+
+        <div class="ionly">
+          <div class="g2">
+            <div>
+              <label>End date</label>
+              <input type="date" id="end">
+            </div>
+            <div>
+              <label>Time period</label>
+              <input id="period" placeholder="3 months">
+            </div>
+          </div>
+
+          <div class="g2">
+            <div>
+              <label>Internship type</label>
+              <select id="ptype">
+                <option>Unpaid</option>
+                <option>Paid</option>
+              </select>
+            </div>
+            <div>
+              <label>Work mode</label>
+              <select id="mode">
+                <option>Remote</option>
+                <option>On-site</option>
+                <option>Hybrid</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div id="payw">
+          <label>Compensation / monthly stipend</label>
+          <input id="pay" placeholder="INR 5,000 per month">
+        </div>
+
+        <div class="g2">
+          <div>
+            <label>Ref. No.</label>
+            <input id="lref">
+          </div>
+          <div>
+            <label>Letter date</label>
+            <input type="date" id="ldate">
+          </div>
+        </div>
+
+        <label>
+          Letter body — {name} {role} {start} {end} {period}
+          {mode} {pay} {valid}
+        </label>
+        <textarea id="body" style="min-height:190px"></textarea>
+
+        <div class="g2">
+          <div>
+            <label>Signatory 1</label>
+            <input id="s1n">
+            <input id="s1t" style="margin-top:4px">
+          </div>
+          <div>
+            <label>Signatory 2</label>
+            <input id="s2n">
+            <input id="s2t" style="margin-top:4px">
+          </div>
+        </div>
+
+        <label>
+          <input type="checkbox" id="acc" checked style="width:auto">
+          Include acceptance section
+        </label>
+      </div>
+
+      <!-- CERTIFICATE FORM -->
+      <div id="f-cert" hidden>
+
+        <label>Intern name</label>
+        <input id="cname" placeholder="Anita Sharma">
+
+        <label>Role / domain</label>
+        <input id="crole" placeholder="Frontend Development">
+
+        <div class="g2">
+          <div>
+            <label>Start date</label>
+            <input type="date" id="cstart">
+          </div>
+          <div>
+            <label>End date</label>
+            <input type="date" id="cend">
+          </div>
+        </div>
+
+        <div class="g2">
+          <div>
+            <label>Time period</label>
+            <input id="cperiod" placeholder="3 months">
+          </div>
+          <div>
+            <label>Internship type</label>
+            <select id="cptype">
+              <option>Unpaid</option>
+              <option>Paid</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="g2">
+          <div>
+            <label>Issue date</label>
+            <input type="date" id="cdate">
+          </div>
+          <div>
+            <label>Certificate no.</label>
+            <input id="cno" readonly>
+          </div>
+        </div>
+
+        <label>Remarks — {name} fills in automatically</label>
+        <textarea id="cremarks" style="min-height:80px"></textarea>
+
+        <div class="g2">
+          <div>
+            <label>Signatory 1</label>
+            <input id="cs1n">
+            <input id="cs1t" style="margin-top:4px">
+          </div>
+          <div>
+            <label>Signatory 2</label>
+            <input id="cs2n">
+            <input id="cs2t" style="margin-top:4px">
+          </div>
+        </div>
+
+        <p class="msg">
+          The QR code only verifies after the certificate is saved.
+          Printing saves it automatically.
+        </p>
+      </div>
+
+      <!-- PRIVATE INVOICE FORM -->
+      <div id="f-invoice" hidden>
+
+        <label>Client name</label>
+        <input id="cn">
+
+        <div class="g2">
+          <div>
+            <label>Email</label>
+            <input id="ce">
+          </div>
+          <div>
+            <label>Contact</label>
+            <input id="cc">
+          </div>
+        </div>
+
+        <div class="g2">
+          <div>
+            <label>Address</label>
+            <input id="ca">
+          </div>
+          <div>
+            <label>Tax ID</label>
+            <input id="ct">
+          </div>
+        </div>
+
+        <div class="g2">
+          <div>
+            <label>Invoice number</label>
+            <input id="inum">
+          </div>
+          <div>
+            <label>Invoice type</label>
+            <select id="ity">
+              <option>Full Payment Invoice</option>
+              <option>Partial Payment Invoice</option>
+              <option>Advance Payment Invoice</option>
+              <option>Final Payment Invoice</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="g2">
+          <div>
+            <label>Invoice date</label>
+            <input type="date" id="idate">
+          </div>
+          <div>
+            <label>Payment due date</label>
+            <input type="date" id="idue">
+          </div>
+        </div>
+
+        <div class="g2">
+          <div>
+            <label>Currency</label>
+            <select id="cur">
+              <option>USD</option>
+              <option>INR</option>
+              <option>EUR</option>
+              <option>GBP</option>
+            </select>
+          </div>
+          <div>
+            <label>Tax % (0 = nil)</label>
+            <input type="number" id="tax" value="0" min="0">
+          </div>
+        </div>
+
+        <label>Line items</label>
+        <div id="items"></div>
+
+        <button class="btn sm" style="margin-top:8px" id="addit">
+          Add item
+        </button>
+
+        <div class="g2">
+          <div>
+            <label>Total project value (optional)</label>
+            <input type="number" id="agr" placeholder="2500">
+          </div>
+          <div>
+            <label>Payment row label</label>
+            <input id="plab" value="Payment Requested">
+          </div>
+        </div>
+
+        <label>Note under breakdown (optional)</label>
+        <textarea id="inote" style="min-height:56px"></textarea>
+
+        <label>Terms (one per line)</label>
+        <textarea id="terms" style="min-height:110px"></textarea>
+      </div>
+
+      <div class="btns">
+        <button class="btn p" id="save">Save</button>
+        <button class="btn" id="pdf">Print / Save as PDF</button>
+        <button class="btn" id="new">New</button>
+      </div>
+
+      <div class="msg" id="msg"></div>
+    </div>
+
+    <div class="stage" id="stage"></div>
+  </div>
+
+  <!-- HISTORY -->
+  <div id="hist" hidden>
+    <div class="wrap">
+      <h3>Saved documents</h3>
+      <p class="msg" id="hmsg"></p>
+      <table class="h" id="ht"></table>
+    </div>
+  </div>
+
+  <!-- TEAM -->
+  <div id="team" hidden>
+    <div class="wrap">
+      <h3>Team access</h3>
+      <p class="msg">
+        Add a teammate in Supabase → Authentication → Users.
+        They appear here straight away. Core members can manage
+        the team, delete documents and change settings; team
+        members can create and save documents.
+      </p>
+      <table class="h" id="tt"></table>
+      <div class="msg" id="tmsg"></div>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div id="set" hidden>
+    <div class="wrap">
+      <h3>Company details</h3>
+      <p class="msg">
+        Shared by the whole team. Bank details are stored in
+        your database, not in the website files.
+      </p>
+
+      <div id="sf"></div>
+
+      <h3>Signatures</h3>
+
+      <div class="g2">
+        <div>
+          <label>Signatory 1 (PNG, transparent)</label>
+          <input type="file" accept="image/*" id="sig1">
+        </div>
+        <div>
+          <label>Signatory 2</label>
+          <input type="file" accept="image/*" id="sig2">
+        </div>
+      </div>
+
+      <div class="g2">
+        <div>
+          <label>Invoice authorized signatory</label>
+          <input type="file" accept="image/*" id="sig3">
+        </div>
+        <div>
+          <label><br></label>
+          <button class="btn sm" id="clrsig">
+            Remove all signatures
+          </button>
+        </div>
+      </div>
+
+      <div class="btns">
+        <button class="btn p" id="sset">Save settings</button>
+      </div>
+
+      <div class="msg" id="smsg"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Supabase configuration -->
+<script src="./config.js"></script>
+
+<!-- QR Code generator -->
+<script src="./vendor/qrcode.js"></script>
+
+<!-- Main application -->
+<script src="./app.js"></script>
+
+</body>
+</html>
