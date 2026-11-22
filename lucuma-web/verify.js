@@ -53,7 +53,7 @@ const ICON = {
    VERIFICATION RESULT
 ========================================= */
 
-function show(cls, title, sub, rows) {
+function show(cls, title, sub, rows, allowCertificateDownload = true) {
     $('vres').innerHTML = `
         <div class="vr ${cls}">
             <div class="vi">
@@ -66,7 +66,7 @@ function show(cls, title, sub, rows) {
 
             ${rows ? `<table class="vt">${rows}</table>` : ''}
 
-            ${cls === 'ok' ? `
+            ${cls === 'ok' && allowCertificateDownload ? `
                 <button
                     type="button"
                     id="downloadCertificate"
@@ -454,7 +454,39 @@ function downloadCertificate() {
    VERIFY CERTIFICATE
 ========================================= */
 
-async function check(no) {
+async function check(no, importedCode = null) {
+    if (importedCode) {
+        $('vn').value = 'IMPORTED PDF';
+        $('vres').innerHTML = '<p class="vsub">Checking imported document…</p>';
+        try {
+            const r = await fetch(API + '/functions/v1/process-imported-pdf', {
+                method: 'POST',
+                headers: {
+                    apikey: CFG.anonKey,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ action: 'verify', code: importedCode })
+            });
+            const d = await r.json();
+            if (!r.ok || !d) throw new Error(d?.error || 'Verification record not found.');
+            const valid = d.verified === true;
+            const table = [
+                ['Document type', d.document_type],
+                ['Document number', d.document_number],
+                ['Recipient', d.recipient],
+                ['Issue date', fd(d.issue_date)],
+                ['Registered on', fd(d.registered_at?.slice(0, 10))]
+            ].map(([a, b]) => `<tr><td>${esc(a)}</td><td>${esc(b || '-')}</td></tr>`).join('');
+            show(
+                valid ? 'ok' : 'bad',
+                valid ? 'Verified document' : 'Document not valid',
+                valid ? 'This document has been approved and authenticated by Lucuma Innovations.' : (d.error || 'This document is not approved or its verification code is invalid.'),
+                table,
+                false
+            );
+        } catch(err) { show('bad','Could not verify',esc(err.message)); }
+        return;
+    }
     no = (no || '').trim().toUpperCase();
 
     if (!no) return;
@@ -583,4 +615,6 @@ $('vf').onsubmit = event => {
    INITIAL VERIFICATION
 ========================================= */
 
-check(new URLSearchParams(location.search).get('c'));
+const query = new URLSearchParams(location.search);
+if (query.get('import')) check('', query.get('import'));
+else check(query.get('c'));

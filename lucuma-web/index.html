@@ -8,7 +8,7 @@
 content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self'; script-src 'self'; connect-src 'self' https://glsbsmgzxsshmrvtwqii.supabase.co https://*.supabase.co;">
   <title>Lucuma Docs</title>
   <link rel="stylesheet" href="fonts.css">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=20261122-all10-features-v1">
 </head>
 
 <body data-role="member">
@@ -20,13 +20,14 @@ content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inli
     <img src="assets/logo.png" class="vlogo" alt="">
     <h2>Lucuma Docs</h2>
     <p class="vsub">Team access only. Sign in with your work email.</p>
+    <p class="vsub">Select your assigned account role and sign in with your work email.</p>
 
-    <label>Account role</label>
+    <label for="lr">Account role</label>
     <select id="lr" required>
-        <option value="member">Team Member</option>
-        <option value="admin">Admin</option>
-        <option value="ceo">CEO</option>
-        <option value="cto">CTO</option>
+      <option value="member">Team Member</option>
+      <option value="admin">Admin</option>
+      <option value="ceo">CEO</option>
+      <option value="cto">CTO</option>
     </select>
 
     <label>Email</label>
@@ -35,9 +36,14 @@ content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inli
            placeholder="you@lucumainnovations.com">
 
     <label>Password</label>
-    <input id="lp" type="password" required
-           autocomplete="current-password"
-           placeholder="••••••••">
+    <div class="password-wrap">
+      <input id="lp" type="password" required
+             autocomplete="current-password"
+             placeholder="••••••••">
+      <button class="password-toggle" type="button" data-password-toggle="lp" aria-label="Show password" aria-pressed="false" title="Show password">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+    </div>
 
     <button class="btn p" style="width:100%;margin-top:18px">
       Sign in
@@ -71,14 +77,14 @@ content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inli
 
     <div id="choose-password" hidden>
       <label>New password</label>
-      <input id="rp" type="password" minlength="8"
+      <div class="password-wrap"><input id="rp" type="password" minlength="8"
              autocomplete="new-password" required
-             placeholder="At least 8 characters">
+             placeholder="At least 8 characters"><button class="password-toggle" type="button" data-password-toggle="rp" aria-label="Show password" aria-pressed="false" title="Show password"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
 
       <label>Confirm new password</label>
-      <input id="rc" type="password" minlength="8"
-       autocomplete="new-password" required disabled>
-             placeholder="Re-enter new password">
+      <div class="password-wrap"><input id="rc" type="password" minlength="8"
+       autocomplete="new-password" required
+       placeholder="Re-enter new password"><button class="password-toggle" type="button" data-password-toggle="rc" aria-label="Show password" aria-pressed="false" title="Show password"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
 
       <button class="btn p" type="submit"
               style="width:100%;margin-top:18px">
@@ -99,6 +105,7 @@ content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inli
   <div class="top" id="nav">
     <b>LUCUMA DOCS</b>
 
+    <button data-m="dashboard">Dashboard</button>
     <button data-m="letter">Letters</button>
     <button data-m="cert">Certificate</button>
     <button data-m="invoice">Invoice</button>
@@ -109,6 +116,12 @@ content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inli
     <span id="who"></span>
     <button id="out">Sign out</button>
   </div>
+
+  <section id="dashboard" class="wrap dashboard" hidden>
+    <div class="dash-head"><div><span class="eyebrow">WORKSPACE OVERVIEW</span><h2>Good to see you.</h2><p class="msg">Your document workspace, organised at a glance.</p></div><button class="btn p" data-m="letter" id="quickCreate">＋ New document</button></div>
+    <div class="stats-grid" id="dashStats"></div>
+    <div class="dash-grid"><article class="glass-panel recent-docs-panel"><div class="panel-heading"><div><span class="eyebrow">YOUR LIBRARY</span><h3>Recently created</h3></div><button class="btn sm" type="button" data-m="hist">View all</button></div><div id="recentDocs" class="recent-list"></div></article><article class="glass-panel notifications-panel"><div class="panel-heading"><div><span class="eyebrow">ATTENTION</span><h3>Things to review</h3></div><span class="dash-orb" aria-hidden="true">✦</span></div><div id="dashNotifications" class="recent-list"><p class="msg">No notifications loaded.</p></div></article></div>
+  </section>
 
   <div class="app" id="app">
 
@@ -369,6 +382,11 @@ content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inli
           </div>
         </div>
 
+        <div class="g2 payment-fields">
+          <div><label>Amount already paid</label><input type="number" id="amountPaid" min="0" step="0.01" value="0"></div>
+          <div><label>Payment reference</label><input id="paymentRef" placeholder="Transaction / UTR / reference"></div>
+        </div>
+        <label>Payment note</label><input id="paymentNote" placeholder="e.g. 60% advance received on issue date">
         <label>Note under breakdown (optional)</label>
         <textarea id="inote" style="min-height:56px"></textarea>
 
@@ -392,6 +410,14 @@ content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inli
   <div id="hist" hidden>
     <div class="wrap">
       <h3>Saved documents</h3>
+      <div class="history-tools"><input id="historySearch" type="search" placeholder="Search number, client, title or type"><select id="historyType"><option value="">All types</option><option value="letter">Letters</option><option value="certificate">Certificates</option><option value="invoice">Invoices</option></select><select id="historyStatus"><option value="">All statuses</option><option value="valid">Valid</option><option value="revoked">Revoked</option></select></div>
+      <div class="pdf-library glass-panel"><div><h3>PDF library</h3><p class="msg">Archive and reopen PDFs on this device, or export saved Lucuma documents. Imported PDFs are not automatically registered or QR-verified until their details are reviewed and linked to a Lucuma document record.</p></div><div class="pdf-actions"><label class="btn" for="pdfImport">＋ Import PDF</label><input id="pdfImport" type="file" accept="application/pdf,.pdf" multiple hidden><button class="btn" type="button" id="exportAllPdf">Export selected documents</button></div><section class="glass-panel" style="margin-top:14px;padding:18px"><h3>Imported PDF drafts</h3><p class="msg">Your imported PDFs that have not yet been submitted for approval.</p><div id="importedPdfList" class="imported-pdf-list"></div></section>
+        <section class="glass-panel" style="margin-top:14px;padding:18px"><h3>Imported PDF approval queue</h3><p class="msg">Pending imported PDFs. Admin and CEO can approve or reject submissions.</p><div id="importApprovalQueue" class="imported-pdf-list"></div></section>
+        <section class="glass-panel" style="margin-top:14px;padding:18px"><h3>Approved imported PDFs</h3><p class="msg">Approved imported letters and invoices remain available here for opening, downloading, verification and authorised deletion.</p><div id="approvedImportedPdfList" class="imported-pdf-list"></div></section>
+        <div class="glass-panel" style="margin-top:14px;padding:18px"><h3>Document operations</h3><div class="pdf-actions"><button class="btn sm" id="backupExport" type="button">Export workspace backup</button><label class="btn sm" for="backupImport">Restore backup</label><input id="backupImport" type="file" accept="application/json,.json" hidden><button class="btn sm" id="bulkArchive" type="button">Archive selected</button><button class="btn sm" id="bulkRevoke" type="button">Revoke selected certificates</button></div><p class="msg" id="advancedMsg" aria-live="polite"></p></div>
+        <div class="glass-panel" style="margin-top:14px;padding:18px"><h3>Approval queue</h3><p class="msg">Submit drafts for review. Admin and CEO can approve or reject.</p><div id="approvalQueue" class="recent-list"></div></div>
+        <div class="glass-panel" style="margin-top:14px;padding:18px"><h3>Version history</h3><div id="versionHistory" class="recent-list"></div></div>
+        <div class="glass-panel" style="margin-top:14px;padding:18px"><h3>Analytics</h3><div id="advancedAnalytics" class="stats-grid"></div></div></div>
       <p class="msg" id="hmsg"></p>
       <table class="h" id="ht"></table>
     </div>
@@ -401,6 +427,7 @@ content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inli
   <div id="team" hidden>
     <div class="wrap">
       <h3>Team access</h3>
+      <p class="msg" id="teamAdminLink" hidden><a class="btn p" href="./team-admin.html">Manage members &amp; roles</a></p>
       <p class="msg">
         Add a teammate in Supabase → Authentication → Users.
         They appear here straight away. Core members can manage
@@ -408,7 +435,7 @@ content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inli
         members can create and save documents.
       </p>
       <table class="h" id="tt"></table>
-      <div class="msg" id="tmsg"></div>
+      <div class="msg" id="tmsg"></div><p class="msg">Managers can edit member and legacy Core profile details. Role changes and account activation remain Admin-only.</p>
     </div>
   </div>
 

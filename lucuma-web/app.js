@@ -20,7 +20,7 @@ const SF=[
 
 let S=Object.fromEntries(SF.map(f=>[f[0],f[2]]));
 let SIG={},ME=null,DOCS=[],TEAM=[],cur=null,mode='letter';
-let items=[{d:'',s:'',a:''}],bodyEdited=false,requestedRole=null;
+let items=[{d:'',s:'',a:''}],bodyEdited=false;
 
 function roleLabel(role) {
     const labels = {
@@ -31,7 +31,7 @@ function roleLabel(role) {
         core: 'Core Member'
     };
 
-    return labels[role] || 'Unknown Role';
+    return labels[role] || String(role || 'Team Member').replace(/_/g,' ').replace(/\b\w/g, c => c.toUpperCase());
 }
 
 const BODY={
@@ -61,7 +61,7 @@ const genCert=()=>{
  return`LI-C-${new Date().getFullYear()}-${s}`;
 };
 
-const siteRoot=()=>((CFG.siteUrl||location.origin).replace(/\/$/,''));
+const siteRoot=()=>{const host=location.hostname;const local=host==='localhost'||host==='127.0.0.1'||host==='0.0.0.0';return (local?location.origin:(CFG.siteUrl||location.origin)).replace(/\/$/,'')};
 const verifyUrl=no=>`${siteRoot()}/verify.html?c=${encodeURIComponent(no)}`;
 const documentUrl=id=>`${siteRoot()}/document.html?id=${encodeURIComponent(id)}`;
 const qrSvg=t=>{
@@ -139,8 +139,16 @@ function logout(){
 }
 
 const loadDocs=async()=>{
- DOCS=await rest('documents?select=id,type,number,title,data,status,created_at,created_by&order=created_at.desc&limit=1000');
+ DOCS=await rest('documents?select=id,type,number,title,data,status,created_at,created_by,approval_status,submitted_at&order=created_at.desc&limit=1000');
 };
+
+async function audit(action, entityType='system', entityId=null, details={}){
+ try{ await rest('audit_logs',{method:'POST',body:JSON.stringify({actor_id:ME?.id||null,action,entity_type:entityType,entity_id:entityId,details})}); }catch(e){ console.warn('Audit log unavailable:',e.message); }
+}
+
+const isManager=()=>ME&&(['admin','ceo','cto'].includes(ME.role)||(Array.isArray(ME.permissions)&&ME.permissions.includes('team_view')));
+const canAdmin=()=>ME&&['admin','ceo'].includes(ME.role);
+
 
 /* APPLICATION BOOT */
 
@@ -159,21 +167,9 @@ async function boot(){
   const p=await rest('profiles?id=eq.'+a.uid);
   ME=p[0];
   if(!ME||!ME.active){
-   $('lm').textContent='Your access is not active. Ask a core member.';
+   $('lm').textContent='Your access is not active. Ask an administrator.';
    return logout();
   }
-  if(requestedRole && ME.role!==requestedRole){
-  const actual = roleLabel(ME.role);
-
-logout();
-
-$('lm').textContent =
-    'This account is registered as ' + actual +
-    '. Select the matching role to sign in.';
-   requestedRole=null;
-   return;
-  }
-  requestedRole=null;
   const st=await rest('settings?key=eq.company');
   if(st[0]){
    const v=st[0].value||{};
@@ -185,8 +181,12 @@ $('lm').textContent =
   $('login').hidden=true;
   $('shell').hidden=false;
   document.body.dataset.role=ME.role;
-  $('who').textContent = (ME.name || ME.email) + ' · ' + roleLabel(ME.role);
-  go('letter');
+  $('who').textContent = (ME.name || ME.email) + ' · ' + (ME.role_label || roleLabel(ME.role));
+  document.querySelector('[data-m=team]').hidden=!isManager();
+  document.querySelector('[data-m=set]').hidden=!canAdmin();
+  if($('teamAdminLink')) $('teamAdminLink').hidden=!canAdmin();
+  go('dashboard');
+  await audit('login','auth',ME.id,{email:ME.email});
  }catch(e){
   $('lm').textContent=e.message;
   logout();
@@ -194,7 +194,13 @@ $('lm').textContent =
 }
 
 async function persist(rec){
+ rec.created_by=cur?(DOCS.find(x=>x.id===cur)?.created_by||ME.id):ME.id;
  if(cur){
+  const previous=DOCS.find(x=>x.id===cur);
+  if(previous){
+   const versions=await rest('document_versions?select=version_no&document_id=eq.'+cur+'&order=version_no.desc&limit=1').catch(()=>[]);
+   await rest('document_versions',{method:'POST',body:JSON.stringify({document_id:cur,version_no:(versions[0]?.version_no||0)+1,snapshot:previous,changed_by:ME.id,change_note:'Automatic snapshot before edit'})}).catch(e=>console.warn('Version snapshot unavailable:',e.message));
+  }
   const r=await rest('documents?id=eq.'+cur,{method:'PATCH',body:JSON.stringify(rec)});
   if(!r||!r[0])throw new Error('The document update returned no record. Check your Supabase UPDATE policy.');
   cur=r[0].id;
@@ -204,6 +210,7 @@ async function persist(rec){
   cur=r[0].id;
  }
  await loadDocs();
+ await audit(cur?'document_updated':'document_created','document',cur,{type:rec.type,number:rec.number});
 }
 
 /* DOCUMENT NUMBER GENERATION */
@@ -310,6 +317,9 @@ const rdI=()=>({
  tax:+$('tax').value||0,
  agr:+$('agr').value||0,
  plab:val('plab'),
+ amountPaid:+$('amountPaid').value||0,
+ paymentRef:val('paymentRef'),
+ paymentNote:val('paymentNote'),
  inote:val('inote'),
  terms:$('terms').value,
  items:items.map(x=>({...x}))
@@ -324,6 +334,8 @@ function invPage(d){
  const sub=d.items.reduce((s,x)=>s+(+x.a||0),0);
  const tx=sub*d.tax/100;
  const tot=sub+tx;
+ const paid=Math.max(0,Math.min(tot,+d.amountPaid||0));
+ const balance=Math.max(0,tot-paid);
  const sg=SIG.s3;
  const na=v=>esc(v||'NA');
 
@@ -348,6 +360,7 @@ function invPage(d){
   <span>${d.tax?m(tx):'NIL'}</span>
  </div>`;
 
+ const paymentRows=`<div class="fb s"><span>Amount Paid</span><span>${m(paid)}</span></div><div class="fb s"><span>Balance Due</span><b>${m(balance)}</b></div>`;
  const kv=(a,b)=>`<div class="kv"><span>${a}</span><b>${b}</b></div>`;
 
  return`<div class="page inv">
@@ -410,13 +423,15 @@ function invPage(d){
       <span>AMOUNT</span>
      </div>
 
-     ${fb}
+     ${fb}${paymentRows}
 
      <div class="tot">
-      <span>TOTAL AMOUNT DUE</span>
+      <span>INVOICE TOTAL</span>
       <span>${m(tot)} ${d.cur}</span>
      </div>
 
+     ${d.paymentRef?`<div class="note"><b>Payment reference:</b> ${esc(d.paymentRef)}</div>`:''}
+     ${d.paymentNote?`<div class="note">${esc(d.paymentNote)}</div>`:''}
      ${d.inote?`<div class="note">${esc(d.inote)}</div>`:''}
     </div>
 </div>
@@ -552,11 +567,12 @@ function fresh(){
   items=[{d:'',s:'',a:''}];
   drawItems();
 
-  ['cn','ce','cc','ca','ct','agr','inote','idue']
+  ['cn','ce','cc','ca','ct','agr','inote','idue','paymentRef','paymentNote']
    .forEach(k=>$(k).value='');
 
   $('idate').value=iso();
   $('tax').value=0;
+  $('amountPaid').value=0;
   $('terms').value=TERMS;
   $('inum').value=nextNo();
  }
@@ -571,11 +587,13 @@ function go(m){
   .forEach(b=>b.classList.toggle('on',b.dataset.m==m));
 
  const ed=['letter','cert','invoice'].includes(m);
+ $('dashboard').hidden=m!='dashboard';
 
  $('app').style.display=ed?'':'none';
  $('hist').hidden=m!='hist';
  $('team').hidden=m!='team';
  $('set').hidden=m!='set';
+ if(m=='dashboard')dashboardDraw();
 
  if(ed){
   $('f-letter').hidden=m!='letter';
@@ -584,9 +602,24 @@ function go(m){
   fresh();
  }
 
- if(m=='hist')histDraw();
- if(m=='team')teamLoad();
- if(m=='set')setDraw();
+ if(m=='hist'){histDraw();advancedLoad();drawImportedPdfs();}
+ if(m=='team'&&isManager())teamLoad();
+ if(m=='set'&&canAdmin())setDraw();
+}
+
+
+async function dashboardDraw(){
+ const count=DOCS.length,letters=DOCS.filter(d=>d.type==='letter').length,certs=DOCS.filter(d=>d.type==='certificate').length,invoices=DOCS.filter(d=>d.type==='invoice').length;
+ const invoiceTotals=DOCS.filter(d=>d.type==='invoice').reduce((a,d)=>{const x=d.data||{},subtotal=(x.items||[]).reduce((n,i)=>n+(+i.a||0),0),total=subtotal+subtotal*(+x.tax||0)/100;a.total+=total;a.paid+=Math.min(total,Math.max(0,+x.amountPaid||0));return a;},{total:0,paid:0});
+ const money=n=>new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:0}).format(n);
+ $('dashStats').innerHTML=[['Total documents',count,'Across your workspace'],['Letters',letters,'Offer and appointment'],['Certificates',certs,'Issued certificates'],['Invoices',invoices,'Tracked invoices'],['Invoice value',money(invoiceTotals.total),'Saved invoice totals'],['Amount received',money(invoiceTotals.paid),'Recorded payments']].map(x=>`<article class="stat-card"><span>${x[0]}</span><strong>${x[1]}</strong><small>${x[2]}</small></article>`).join('');
+ $('recentDocs').innerHTML=DOCS.slice(0,6).map(d=>`<div class="recent-row"><div><b>${esc(d.number)}</b><small>${esc(d.title||d.type)} · ${new Date(d.created_at).toLocaleDateString('en-IN')}</small></div><span class="status-pill ${d.status==='valid'?'good':'warn'}">${esc(d.status||'valid')}</span></div>`).join('')||'<p class="msg">No documents yet.</p>';
+ const due=DOCS.filter(d=>d.type==='invoice').map(d=>{const x=d.data||{},sub=(x.items||[]).reduce((n,i)=>n+(+i.a||0),0),total=sub+sub*(+x.tax||0)/100;return {d,balance:Math.max(0,total-(+x.amountPaid||0))}}).filter(x=>x.balance>0);
+ let notifications=[];
+ try{notifications=await rest('notifications?select=id,title,message,category,created_at,read_at&user_id=eq.'+ME.id+'&order=created_at.desc&limit=6')}catch(e){console.warn('Notifications table not available until migration is applied:',e.message)}
+ const realNotes=notifications.map(n=>`<div class="recent-row"><div><b>${esc(n.title)}</b><small>${esc(n.message)} · ${new Date(n.created_at).toLocaleDateString('en-IN')}</small></div><span class="status-pill ${n.read_at?'good':'warn'}">${n.read_at?'Read':'New'}</span></div>`).join('');
+ const pending=due.slice(0,4).map(x=>`<div class="recent-row"><div><b>${esc(x.d.number)} · Payment pending</b><small>${esc(x.d.title)} · ${money(x.balance)} outstanding</small></div><span class="status-pill warn">Due</span></div>`).join('');
+ $('dashNotifications').innerHTML=(realNotes+pending)||'<p class="msg">No notifications or outstanding invoice balances.</p>';
 }
 
 const KL={
@@ -596,17 +629,21 @@ const KL={
 };
 
 function histDraw(){
-const canManageLibrary =
-    ME && ['ceo', 'cto', 'admin'].includes(ME.role);
+const search=($('historySearch')?.value||'').toLowerCase();
+const typeFilter=$('historyType')?.value||'';
+const statusFilter=$('historyStatus')?.value||'';
+const filtered=DOCS.filter(d=>(!typeFilter||d.type===typeFilter)&&(!statusFilter||d.status===statusFilter)&&(!search||[d.number,d.title,d.type,d.data?.cn,d.data?.name].join(' ').toLowerCase().includes(search)));
+const canManageLibrary = isManager();
 
- $('hmsg').textContent=DOCS.length+' document'+(DOCS.length==1?'':'s');
+ $('hmsg').textContent=filtered.length+' of '+DOCS.length+' documents';
 
  $('ht').innerHTML=
-  '<tr><th>Number</th><th>Type</th><th>Name</th><th>Saved</th><th></th></tr>'+
-  (DOCS.map(d=>{
+  '<tr><th><input type="checkbox" id="selectAllDocs" aria-label="Select all documents" style="width:auto"></th><th>Number</th><th>Type</th><th>Name</th><th>Saved</th><th></th></tr>'+
+  (filtered.map(d=>{
    const c=d.type=='certificate';
 
    return`<tr>
+    <td><input type="checkbox" class="doc-export-check" value="${esc(d.id)}" aria-label="Select ${esc(d.number)}" style="width:auto"></td>
     <td>${esc(d.number)}</td>
     <td>
      ${d.type=='letter'?KL[d.data.kind]||'Letter':d.type=='invoice'?'Invoice':'Certificate'}
@@ -616,12 +653,14 @@ const canManageLibrary =
     <td>${new Date(d.created_at).toLocaleDateString('en-GB')}</td>
     <td>
      <button class="btn sm" data-open="${d.id}">Open / QR</button>
+     <button class="btn sm" data-submit-approval="${d.id}" ${d.approval_status==='pending'?'disabled':''}>Submit for approval</button>
+     <button class="btn sm" data-export-pdf="${d.id}">Export PDF</button>
      ${c?`<button class="btn sm" data-copy="${esc(d.number)}">Copy verify link</button>`:''}
      ${c&&canManageLibrary?`<button class="btn sm" data-rev="${d.id}">${d.status=='valid'?'Revoke':'Restore'}</button>`:''}
-     ${canManageLibrary?`<button class="btn sm danger" data-rm="${d.id}">Delete ${c?'certificate':'document'}</button>`:''}
+     ${canAdmin()?`<button class="btn sm danger" data-rm="${d.id}">Delete ${c?'certificate':'document'}</button>`:''}
     </td>
    </tr>`;
-  }).join('')||'<tr><td colspan="5">Nothing saved yet.</td></tr>');
+  }).join('')||'<tr><td colspan="6">Nothing saved yet.</td></tr>');
 }
 
 async function save(){
@@ -648,6 +687,9 @@ async function save(){
    d=rdI();
    if(!d.cn)return $('msg').textContent='Add the client name first.',false;
 
+   const invoiceSubtotal=d.items.reduce((n,x)=>n+(+x.a||0),0);
+   const invoiceTotal=invoiceSubtotal+invoiceSubtotal*(+d.tax||0)/100;
+   if((+d.amountPaid||0)>invoiceTotal)return $('msg').textContent='Amount paid cannot exceed the invoice total.',false;
    type='invoice';
    num=d.inum;
    title=d.cn;
@@ -682,7 +724,7 @@ async function teamLoad(){
      <td>${esc(p.email)}</td>
      <td><input data-n="${p.id}" value="${esc(p.name||'')}"></td>
      <td>
-    <select data-r="${p.id}" ${me?'disabled':''}>
+    <select data-r="${p.id}" ${me||ME.role!=='admin'?'disabled':''}>
         <option value="member" ${p.role==='member'?'selected':''}>Team Member</option>
         <option value="admin" ${p.role==='admin'?'selected':''}>Admin</option>
         <option value="ceo" ${p.role==='ceo'?'selected':''}>CEO</option>
@@ -690,9 +732,9 @@ async function teamLoad(){
     </select>
      </td>
      <td>
-      <input type="checkbox" data-a="${p.id}" ${p.active?'checked':''} ${me?'disabled':''} style="width:auto">
+      <input type="checkbox" data-a="${p.id}" ${p.active?'checked':''} ${me||ME.role!=='admin'?'disabled':''} style="width:auto">
      </td>
-     <td><button class="btn sm" data-ts="${p.id}">Save</button></td>
+     <td><button class="btn sm" data-ts="${p.id}" ${isManager()?'':'disabled'}>Save</button></td>
     </tr>`;
    }).join('');
 
@@ -742,6 +784,7 @@ async function saveSet(){
    body:JSON.stringify({key:'company',value:{...S,sig:SIG}})
   });
 
+  await audit('company_settings_updated','settings','company',{});
   $('smsg').textContent='Settings saved for the whole team.';
 
  }catch(e){
@@ -752,6 +795,10 @@ async function saveSet(){
 /* EVENT HANDLERS */
 
 $('nav').onclick=e=>e.target.dataset.m&&go(e.target.dataset.m);
+$('quickCreate').onclick=()=>go('letter');
+$('historySearch').oninput=()=>histDraw();
+$('historyType').onchange=()=>histDraw();
+$('historyStatus').onchange=()=>histDraw();
 $('out').onclick=logout;
 
 $('f-letter').oninput=e=>{
@@ -833,6 +880,12 @@ $('ht').onclick=async e=>{
  const b=e.target.dataset;
  const id=b.open||b.rm||b.rev;
 
+ if(b.exportPdf){
+  const u=new URL('document.html',location.href);u.searchParams.set('id',b.exportPdf);
+  window.open(u.href,'_blank','noopener');
+  return;
+ }
+
  if(b.copy){
   const u=verifyUrl(b.copy);
 
@@ -887,6 +940,9 @@ $('ht').onclick=async e=>{
     tax:x.tax,
     agr:x.agr||'',
     plab:x.plab,
+    amountPaid:x.amountPaid||0,
+    paymentRef:x.paymentRef||'',
+    paymentNote:x.paymentNote||'',
     inote:x.inote,
     terms:x.terms
    }).forEach(([k,v])=>$(k).value=v);
@@ -905,11 +961,13 @@ $('ht').onclick=async e=>{
    });
 
    await loadDocs();
+   await audit('document_status_changed','document',id,{status:d.status=='valid'?'revoked':'valid'});
    histDraw();
   }
 
   if(b.rm&&confirm('Delete this document permanently?')){
    await rest('documents?id=eq.'+id,{method:'DELETE'});
+   await audit('document_deleted','document',id,{number:d.number,type:d.type});
    await loadDocs();
    histDraw();
   }
@@ -926,15 +984,12 @@ $('tt').onclick=async e=>{
  if(!id)return;
 
  try{
-  await rest('profiles?id=eq.'+id,{
-   method:'PATCH',
-   body:JSON.stringify({
-    name:document.querySelector(`[data-n="${id}"]`).value.trim(),
-    role:document.querySelector(`[data-r="${id}"]`).value,
-    active:document.querySelector(`[data-a="${id}"]`).checked
-   })
-  });
+  const name=document.querySelector(`[data-n="${id}"]`).value.trim();
+  const role=document.querySelector(`[data-r="${id}"]`).value;
+  const active=document.querySelector(`[data-a="${id}"]`).checked;
+  await rest('rpc/manager_update_profile',{method:'POST',body:JSON.stringify({p_id:id,p_name:name,p_role:role,p_active:active})});
 
+  await audit('team_member_updated','profile',id,{role});
   $('tmsg').textContent='Saved.';
   teamLoad();
 
@@ -981,6 +1036,11 @@ const showReset=(recovery=false)=>{
  $('request-reset').hidden=recovery;
  $('choose-password').hidden=!recovery;
 
+ // Disabled controls inside the hidden section must not participate in form validation.
+ $('re').disabled=recovery;
+ $('rp').disabled=!recovery;
+ $('rc').disabled=!recovery;
+
  $('rsub').textContent=recovery
   ?'Choose a new password for your account.'
   :'Enter your work email. If an account exists, we will send a password reset link.';
@@ -990,6 +1050,9 @@ const showLogin=()=>{
  $('rf').hidden=true;
  $('lf').hidden=false;
  $('rm').textContent='';
+ $('re').disabled=false;
+ $('rp').disabled=true;
+ $('rc').disabled=true;
 };
 
 $('forgot').onclick=()=>{
@@ -1132,7 +1195,7 @@ $('rf').onsubmit=async e=>{
 
   localStorage.setItem('li_recovery_verifier',verifier);
 
-  const redirect=(CFG.siteUrl||location.origin).replace(/\/$/,'')+'/';
+  const redirect=siteRoot()+'/';
 
   const r=await fetch(
    API+'/auth/v1/recover?redirect_to='+encodeURIComponent(redirect),
@@ -1169,7 +1232,6 @@ $('rf').onsubmit=async e=>{
 $('lf').onsubmit=async e=>{
  e.preventDefault();
  $('lm').textContent='';
- requestedRole=$('lr').value;
 
  try{
   await authCall('password',{
@@ -1177,18 +1239,191 @@ $('lf').onsubmit=async e=>{
    password:$('lp').value
   });
 
+  // The selected role is a sign-in check only; it never grants permissions.
+  // The role stored in the Supabase profile remains authoritative.
+  const account=AUTH();
+  const profiles=await rest('profiles?id=eq.'+account.uid);
+  const profile=profiles[0];
+  if(!profile || !profile.active){
+   logout();
+   throw new Error('Your account is not active. Ask a Lucuma administrator.');
+  }
+  if(![...$('lr').options].some(o=>o.value===profile.role)){
+   $('lr').add(new Option(profile.role_label || roleLabel(profile.role), profile.role));
+   $('lr').value = profile.role;
+  }
+  if(profile.role !== $('lr').value){
+   logout();
+   throw new Error('Selected role does not match your assigned account role. Please select '+(profile.role_label || roleLabel(profile.role))+'.');
+  }
+
   $('lp').value='';
   await boot();
 
  }catch(er){
-  requestedRole=null;
   $('lm').textContent=er.message;
  }
 };
 
 window.onresize=()=>$('shell').hidden||draw();
 
+
+
+/* PASSWORD VISIBILITY TOGGLES */
+document.querySelectorAll('[data-password-toggle]').forEach(button=>{
+ button.addEventListener('click',()=>{
+  const input=$(button.dataset.passwordToggle);
+  if(!input)return;
+  const reveal=input.type==='password';
+  input.type=reveal?'text':'password';
+  button.setAttribute('aria-label',reveal?'Hide password':'Show password');
+  button.setAttribute('title',reveal?'Hide password':'Show password');
+  button.setAttribute('aria-pressed',String(reveal));
+  button.classList.toggle('is-visible',reveal);
+  button.innerHTML=reveal
+   ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M9.9 5.2A10.8 10.8 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.1 3.8M6.2 6.2C3.5 8 2 12 2 12s3.6 7 10 7c1.2 0 2.3-.2 3.3-.6"/></svg>'
+   : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>';
+ });
+});
+
+/* LOCAL PDF LIBRARY — imported PDFs stay in this browser/device. */
+const PDF_DB='lucuma_docs_pdf_library',PDF_STORE='pdfs';
+function openPdfDb(){return new Promise((resolve,reject)=>{
+ const req=indexedDB.open(PDF_DB,1);
+ req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains(PDF_STORE))db.createObjectStore(PDF_STORE,{keyPath:'id'});};
+ req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);
+});}
+async function pdfStore(mode,work){const db=await openPdfDb();return new Promise((resolve,reject)=>{
+ const tx=db.transaction(PDF_STORE,mode),store=tx.objectStore(PDF_STORE);let result;
+ try{result=work(store);}catch(e){reject(e);return;}
+ tx.oncomplete=()=>{db.close();resolve(result?.result??result);};tx.onerror=()=>{db.close();reject(tx.error);};tx.onabort=()=>{db.close();reject(tx.error);};
+});}
+async function drawImportedPdfs(){
+ const box=$('importedPdfList'),queue=$('importApprovalQueue'),approved=$('approvedImportedPdfList');
+ if(!box)return;
+ try{
+  const rows=await rest('imported_pdfs?select=id,file_name,detected_type,detected_number,detected_recipient,verification_code,status,approval_status,submitted_at,review_note,created_at,uploaded_by&order=created_at.desc&limit=200');
+  const mine=rows.filter(f=>f.uploaded_by===ME.id);
+  const visible=rows.filter(f=>isManager()||f.uploaded_by===ME.id);
+  const card=f=>{
+   const canVerify=f.approval_status==='approved'&&!!f.verification_code;
+   return `<div class="imported-pdf"><span><b>${esc(f.file_name||'Imported PDF')}</b><small>${esc(f.detected_type||'unknown')} · ${esc(f.detected_number||'number not detected')} · ${esc(f.approval_status||'draft')}${f.review_note?' · '+esc(f.review_note):''}</small></span><span class="imported-pdf-actions"><button class="btn sm" type="button" data-import-open="${esc(f.id)}">Open</button><button class="btn sm" type="button" data-import-download="${esc(f.id)}">Download</button>${canVerify?`<a class="btn sm" href="${esc(siteRoot()+'/verify-imported.html?code='+encodeURIComponent(f.verification_code))}" target="_blank" rel="noopener">Verify</a>`:''}${canAdmin()?`<button class="btn sm danger" type="button" data-import-delete="${esc(f.id)}">Delete</button>`:''}${f.approval_status!=='pending'&&f.approval_status!=='approved'&&f.uploaded_by===ME.id?`<button class="btn sm p" type="button" data-import-submit="${esc(f.id)}">Send for approval</button>`:''}${canAdmin()&&f.approval_status==='pending'?`<button class="btn sm" type="button" data-import-review="approve" data-import-id="${esc(f.id)}">Approve</button><button class="btn sm danger" type="button" data-import-review="reject" data-import-id="${esc(f.id)}">Reject</button>`:''}</span></div>`;
+  };
+  const state=f=>String(f.approval_status||'draft').trim().toLowerCase();
+  box.innerHTML=visible.filter(f=>!['pending','approved'].includes(state(f))).map(card).join('')||'<p class="msg">No imported PDF drafts.</p>';
+  if(queue)queue.innerHTML=(canAdmin()?visible.filter(f=>state(f)==='pending'):mine.filter(f=>state(f)==='pending')).map(card).join('')||'<p class="msg">No imported PDFs pending approval.</p>';
+  if(approved)approved.innerHTML=visible.filter(f=>state(f)==='approved').map(card).join('')||'<p class="msg">No approved imported PDFs yet.</p>';
+ }catch(e){
+  console.error('Imported PDF registry:',e);
+  box.textContent='PDF registry unavailable: '+e.message;
+ }
+}
+$('pdfImport')?.addEventListener('change',async e=>{
+ const files=[...e.target.files||[]];if(!files.length)return;
+ const status=$('advancedMsg');
+ for(const file of files){
+  if(file.type!=='application/pdf'&&!file.name.toLowerCase().endsWith('.pdf')){alert(`${file.name} is not a PDF.`);continue;}
+  if(file.size>25*1024*1024){alert(`${file.name} exceeds the 25 MB limit.`);continue;}
+  try{
+   status.textContent=`Recognising ${file.name}…`;
+   const bytes=new Uint8Array(await file.arrayBuffer());let binary='';for(let i=0;i<bytes.length;i+=0x8000)binary+=String.fromCharCode(...bytes.subarray(i,i+0x8000));
+   const response=await fetch(API+'/functions/v1/process-imported-pdf',{method:'POST',headers:{apikey:CFG.anonKey,Authorization:'Bearer '+await token(),'Content-Type':'application/json'},body:JSON.stringify({name:file.name,base64:btoa(binary),siteUrl:siteRoot()})});
+   const result=await response.json();if(!response.ok)throw new Error(result.error||'PDF processing failed');
+   const pdfBytes=Uint8Array.from(atob(result.stampedPdfBase64),c=>c.charCodeAt(0));const blob=new Blob([pdfBytes],{type:'application/pdf'});const link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download=file.name.replace(/\.pdf$/i,'')+'-verified.pdf';link.click();setTimeout(()=>URL.revokeObjectURL(link.href),30000);
+   await audit('imported_pdf_registered','imported_pdf',result.record.id,{name:file.name,verification_code:result.record.verification_code,recognized:result.recognized});
+   status.textContent=`${file.name}: imported as draft. Review the PDF details, then select Send for approval.`;
+  }catch(err){status.textContent=`Could not process ${file.name}: ${err.message}`;}
+ }
+ e.target.value='';await drawImportedPdfs();
+});
+async function handleImportedPdfAction(e){
+ const openBtn=e.target.closest('[data-import-open]');
+ const downloadBtn=e.target.closest('[data-import-download]');
+ const submitBtn=e.target.closest('[data-import-submit]');
+ const reviewBtn=e.target.closest('[data-import-review]');
+ const deleteBtn=e.target.closest('[data-import-delete]');
+ const button=openBtn||downloadBtn||submitBtn||reviewBtn||deleteBtn;
+ if(!button)return;
+ const id=button.dataset.importOpen||button.dataset.importDownload||button.dataset.importSubmit||button.dataset.importId||button.dataset.importDelete;
+ const status=$('advancedMsg');
+ try{
+  if(submitBtn){
+   await rest('rpc/submit_imported_document_for_approval',{method:'POST',body:JSON.stringify({p_document_id:id})});
+   await audit('imported_pdf_submitted_for_approval','imported_document',id,{});
+   status.textContent='Imported PDF sent for approval.';
+   await drawImportedPdfs();return;
+  }
+  if(deleteBtn){
+   if(!canAdmin())throw new Error('Only Admin or CEO can delete imported PDFs.');
+   if(!confirm('Permanently delete this imported PDF and its stored file? This cannot be undone.'))return;
+   const response=await fetch(API+'/functions/v1/process-imported-pdf',{
+    method:'POST',headers:{apikey:CFG.anonKey,Authorization:'Bearer '+await token(),'Content-Type':'application/json'},
+    body:JSON.stringify({action:'delete',id})
+   });
+   const data=await response.json().catch(()=>({}));
+   if(!response.ok||!data.success)throw new Error(data.error||'Unable to delete imported PDF.');
+   status.textContent='Imported PDF deleted successfully.';
+   await drawImportedPdfs();return;
+  }
+  if(reviewBtn){
+   if(!canAdmin())throw new Error('Only Admin or CEO can review imported PDFs.');
+   let note='';
+   if(reviewBtn.dataset.importReview==='reject'){
+    note=prompt('Enter the rejection reason:')||'Rejected by reviewer';
+   }else{
+    note=prompt('Optional approval note:')||'';
+   }
+   await rest('rpc/review_imported_document',{method:'POST',body:JSON.stringify({p_document_id:id,p_decision:reviewBtn.dataset.importReview,p_note:note})});
+   await audit('imported_pdf_'+reviewBtn.dataset.importReview,'imported_document',id,{note});
+   status.textContent='Imported PDF '+reviewBtn.dataset.importReview+'d.';
+   await drawImportedPdfs();return;
+  }
+  const response=await fetch(API+'/functions/v1/process-imported-pdf',{
+   method:'POST',headers:{apikey:CFG.anonKey,Authorization:'Bearer '+await token(),'Content-Type':'application/json'},
+   body:JSON.stringify({action:'download',id})
+  });
+  const data=await response.json();
+  if(!response.ok)throw new Error(data.error||'Unable to access imported PDF.');
+  if(openBtn){window.open(data.url,'_blank','noopener');}
+  else{const a=document.createElement('a');a.href=data.url;a.download=data.name||'imported-document.pdf';document.body.appendChild(a);a.click();a.remove();}
+ }catch(err){status.textContent=err.message;}
+}
+$('importedPdfList')?.addEventListener('click',handleImportedPdfAction);
+$('importApprovalQueue')?.addEventListener('click',handleImportedPdfAction);
+$('approvedImportedPdfList')?.addEventListener('click',handleImportedPdfAction);
+$('ht')?.addEventListener('change',e=>{if(e.target.id==='selectAllDocs')document.querySelectorAll('.doc-export-check').forEach(c=>c.checked=e.target.checked);});
+$('exportAllPdf')?.addEventListener('click',()=>{
+ const ids=[...document.querySelectorAll('.doc-export-check:checked')].map(x=>x.value);
+ if(!ids.length){alert('Select at least one saved document first.');return;}
+ ids.forEach((id,i)=>{const u=new URL('document.html',location.href);u.searchParams.set('id',id);setTimeout(()=>window.open(u.href,'_blank','noopener'),i*180);});
+});
+
+
+/* ADVANCED WORKSPACE FEATURES */
+async function advancedLoad(){
+ const msg=$('advancedMsg');
+ try{
+  const approvals=await rest('documents?select=id,number,title,type,approval_status,created_by,submitted_at,review_note&approval_status=eq.pending&order=submitted_at.desc');
+  $('approvalQueue').innerHTML=approvals.length?approvals.map(d=>`<div class="recent-row"><div><b>${esc(d.number)} · ${esc(d.title)}</b><small>${esc(d.type)} · submitted ${d.submitted_at?new Date(d.submitted_at).toLocaleDateString('en-IN'):'date unavailable'}</small></div><span>${canAdmin()?`<button class="btn sm" data-approve="${d.id}">Approve</button><button class="btn sm danger" data-reject="${d.id}">Reject</button>`:'Pending'}</span></div>`).join(''):'<p class="msg">No documents awaiting approval.</p>';
+  const docs=DOCS.filter(d=>d.type==='invoice');const totals=docs.reduce((a,d)=>{const x=d.data||{},sub=(x.items||[]).reduce((n,i)=>n+(+i.a||0),0),total=sub+sub*(+x.tax||0)/100;a.revenue+=total;a.paid+=Math.min(total,+x.amountPaid||0);return a;},{revenue:0,paid:0});
+  $('advancedAnalytics').innerHTML=[['Documents',DOCS.length],['Invoices',docs.length],['Invoice value',money(totals.revenue)],['Received',money(totals.paid)],['Outstanding',money(totals.revenue-totals.paid)],['Certificates',DOCS.filter(d=>d.type==='certificate').length]].map(x=>`<article class="stat-card"><span>${x[0]}</span><strong>${x[1]}</strong></article>`).join('');
+  const versions=await rest('document_versions?select=id,document_id,version_no,change_note,created_at&order=created_at.desc&limit=12').catch(()=>[]);
+  $('versionHistory').innerHTML=versions.length?versions.map(v=>{const d=DOCS.find(x=>x.id===v.document_id);return `<div class="recent-row"><div><b>${esc(d?.number||'Document')} · Version ${v.version_no}</b><small>${esc(v.change_note||'Saved version')} · ${new Date(v.created_at).toLocaleString('en-IN')}</small></div><button class="btn sm" data-restore-version="${v.id}">Restore</button></div>`}).join(''):'<p class="msg">No saved versions yet. Versions are captured automatically before document edits.</p>';
+ }catch(e){if(msg)msg.textContent=e.message;}
+}
+$('hist')?.addEventListener('click',async e=>{
+ const b=e.target.closest('button');if(!b)return;
+ try{
+  if(b.dataset.approve||b.dataset.reject){const id=b.dataset.approve||b.dataset.reject;const note=b.dataset.reject?prompt('Reason for rejection:')||'Rejected':'';await rest('rpc/review_document',{method:'POST',body:JSON.stringify({p_document_id:id,p_decision:b.dataset.approve?'approved':'rejected',p_note:note})});await audit(b.dataset.approve?'document_approved':'document_rejected','document',id,{note});await advancedLoad();}
+  if(b.dataset.restoreVersion){const rows=await rest('document_versions?select=*&id=eq.'+b.dataset.restoreVersion);const v=rows[0];if(!v||!confirm('Restore this saved version? Current content will be saved as another version first.'))return;const d=DOCS.find(x=>x.id===v.document_id);if(!d)throw new Error('Document not available');const snap=v.snapshot;await persist({type:snap.type,number:snap.number,title:snap.title,data:snap.data,status:snap.status});await rest('documents?id=eq.'+d.id,{method:'PATCH',body:JSON.stringify({type:snap.type,number:snap.number,title:snap.title,data:snap.data,status:snap.status})});await loadDocs();await histDraw();await advancedLoad();}
+ }catch(err){$('advancedMsg').textContent=err.message;}
+});
+$('ht')?.addEventListener('click',async e=>{const b=e.target.closest('[data-submit-approval]');if(!b)return;const d=DOCS.find(x=>x.id===b.dataset.submitApproval);if(!d)return;try{await rest('rpc/submit_document_for_approval',{method:'POST',body:JSON.stringify({p_document_id:d.id})});await audit('document_submitted_for_approval','document',d.id,{});await loadDocs();histDraw();advancedLoad();$('advancedMsg').textContent='Document submitted for approval.';}catch(err){$('advancedMsg').textContent=err.message;}});
+$('backupExport')?.addEventListener('click',async()=>{try{const payload={format:'lucuma-docs-backup-v1',createdAt:new Date().toISOString(),documents:DOCS,settings:await rest('settings?key=eq.company'),payments:await rest('invoice_payments?select=*&order=created_at.asc').catch(()=>[]),versions:await rest('document_versions?select=*&order=created_at.asc').catch(()=>[]),importedPdfs:await rest('imported_pdfs?select=id,document_id,file_name,storage_path,file_sha256,extracted_text,detected_type,detected_number,detected_recipient,detected_issue_date,verification_code,status,uploaded_by,created_at').catch(()=>[])};const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='lucuma-docs-backup-'+iso()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),30000);$('advancedMsg').textContent='Backup exported. Store it securely; it contains company and document information.';}catch(e){$('advancedMsg').textContent=e.message;}});
+$('backupImport')?.addEventListener('change',async e=>{const f=e.target.files?.[0];if(!f)return;try{if(!canAdmin())throw new Error('Only Admin/CEO can restore a backup.');const data=JSON.parse(await f.text());if(data.format!=='lucuma-docs-backup-v1'||!Array.isArray(data.documents))throw new Error('Unsupported or invalid backup file.');if(!confirm(`Restore ${data.documents.length} documents? Existing records will not be deleted; duplicate numbers will be skipped.`))return;let restored=0;for(const d of data.documents){try{await rest('documents',{method:'POST',body:JSON.stringify({type:d.type,number:d.number,title:d.title,data:d.data,status:d.status||'valid',created_by:ME.id})});restored++;}catch(err){console.warn('Skipped backup record',d.number,err.message);}}if(Array.isArray(data.settings)&&data.settings[0])await rest('settings?on_conflict=key',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=representation'},body:JSON.stringify(data.settings[0])}).catch(()=>{});await loadDocs();histDraw();await audit('workspace_backup_restored','backup',null,{restored,total:data.documents.length});$('advancedMsg').textContent=`Restored ${restored} of ${data.documents.length} records. Existing duplicates were skipped.`;}catch(err){$('advancedMsg').textContent=err.message;}e.target.value='';});
+$('bulkArchive')?.addEventListener('click',async()=>{const ids=[...document.querySelectorAll('.doc-export-check:checked')].map(x=>x.value);if(!ids.length)return alert('Select documents first.');if(!isManager())return alert('Manager access required.');for(const id of ids)await rest('documents?id=eq.'+id,{method:'PATCH',body:JSON.stringify({status:'archived',archived_at:new Date().toISOString()})});await loadDocs();histDraw();await audit('documents_archived','document',null,{ids});$('advancedMsg').textContent=`Archived ${ids.length} documents.`;});
+$('bulkRevoke')?.addEventListener('click',async()=>{const ids=[...document.querySelectorAll('.doc-export-check:checked')].map(x=>x.value).filter(id=>DOCS.find(d=>d.id===id)?.type==='certificate');if(!ids.length)return alert('Select certificates first.');if(!isManager())return alert('Manager access required.');for(const id of ids)await rest('documents?id=eq.'+id,{method:'PATCH',body:JSON.stringify({status:'revoked'})});await loadDocs();histDraw();await audit('certificates_revoked','document',null,{ids});$('advancedMsg').textContent=`Revoked ${ids.length} certificates.`;});
+
 initialiseRecovery().finally(()=>{
  if($('rf').hidden)boot();
-    if($('rf').hidden)boot();
 });

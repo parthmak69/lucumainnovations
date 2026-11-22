@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta http-equiv="Cache-Control" content="no-store">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self'; script-src 'self'; connect-src https://*.supabase.co">
+  <title>Private Document Verification · Lucuma Innovations</title>
+  <link rel="stylesheet" href="fonts.css">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .private-note{font-size:13px;line-height:1.55;opacity:.82;margin:12px 0 0}
+    .vtable{width:100%;border-collapse:collapse;margin-top:16px;text-align:left}
+    .vtable td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.16);font-size:14px;overflow-wrap:anywhere}
+    .vtable td:first-child{font-weight:700;width:40%}
+    .scan-status{padding:14px;border-radius:12px;margin-top:14px;background:rgba(255,255,255,.08)}
+  </style>
+</head>
+<body class="vbody">
+  <div class="bgfx"><i></i><i></i><i></i></div>
+  <main class="vwrap"><section class="glass v">
+    <img src="assets/logo.png" class="vlogo" alt="Lucuma Innovations">
+    <h2>Document verification</h2>
+    <p class="vsub">Lucuma Innovations · Secure QR verification</p>
+    <div id="verifyResult" class="scan-status" aria-live="polite">Checking document authenticity…</div>
+    <p class="private-note">This page confirms whether the scanned document is registered and approved. The original PDF and its contents are not made public.</p>
+  </section></main>
+  <script src="config.js"></script>
+  <script src="verify-imported.js"></script>
+</body>
+</html>

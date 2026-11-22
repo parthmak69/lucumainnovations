@@ -6,7 +6,9 @@
 
     const $ = id => document.getElementById(id);
 
-    const id = new URLSearchParams(location.search).get("id");
+    const params = new URLSearchParams(location.search);
+    const id = params.get("id");
+    const importedId = params.get("imported");
 
     const libraryState = {
     documents: [],
@@ -49,7 +51,7 @@ function renderLibrary() {
             <td>${esc(d.status)}</td>
             <td>${fd(d.created_at?.slice(0, 10))}</td>
             <td>
-                <a href="document.html?id=${encodeURIComponent(d.id)}"
+                <a href="${d.imported ? `document.html?imported=${encodeURIComponent(d.imported_id)}` : `document.html?id=${encodeURIComponent(d.id)}`}"
                    class="lib-open">View</a>
             </td>
         </tr>
@@ -121,7 +123,26 @@ async function loadLibrary() {
         );
     }
 
-    libraryState.documents = result || [];
+    // Merge approved private imported PDFs into the same library. The actual PDF
+    // remains private and is opened through an authenticated short-lived signed URL.
+    const imported = await rest(
+        "imported_pdfs?select=id,file_name,detected_type,detected_number,detected_recipient,approval_status,created_at&approval_status=eq.approved&order=created_at.desc",
+        access
+    ).catch(error => {
+        console.warn("Approved imported PDF list unavailable:", error);
+        return [];
+    });
+    const importedRows = (imported || []).map(f => ({
+        id: `imported-${f.id}`,
+        imported: true,
+        imported_id: f.id,
+        number: f.detected_number || "Not detected",
+        type: f.detected_type === "unknown" ? "letter" : (f.detected_type || "letter"),
+        title: f.file_name || f.detected_recipient || "Imported PDF",
+        status: "approved · imported PDF",
+        created_at: f.created_at
+    }));
+    libraryState.documents = [...(result || []), ...importedRows];
 
     renderLibrary();
 }
@@ -356,143 +377,73 @@ async function loadLibrary() {
     // CERTIFICATE VIEWER
     // =====================================================
 
-function certificate(d, record, S, SIG) {
+    function certificate(d, record, S, SIG) {
+        // Keep the viewer identical to the certificate generated in app.js.
+        const rm = esc(String(d.remarks || "").replace(/\{name\}/g, d.name || ""));
 
-    const remarks = String(d.remarks || "")
-        .replace(/\{name\}/g, d.name || "");
-
-    return `
-        <article class="page cert">
-
-            <div class="ccorner a"></div>
-            <div class="ccorner b"></div>
-            <div class="cframe"></div>
-
-            <div class="cin">
-
-                <!-- COMPANY HEADER -->
-                <div class="chead">
-
-                    <img src="assets/logo.png"
-                         alt="Lucuma Innovations Logo">
-
-                    <div>
-                        <b>LUCUMA INNOVATIONS</b>
-
-                        <small>
-                            TECHNOLOGY | INNOVATION | SOLUTIONS
-                        </small>
-
-                        ${S.reg ? `
-                            <small>
-                                Registration No: ${esc(S.reg)}
-                            </small>
-                        ` : ""}
-
+        return `
+            <article class="page cert">
+                <div class="ccorner a"></div>
+                <div class="ccorner b"></div>
+                <div class="cframe"></div>
+                <div class="cin">
+                    <div class="chead">
+                        <img src="assets/logo.png" alt="Lucuma Innovations">
+                        <div>
+                            <b>LUCUMA INNOVATIONS</b>
+                            <small>TECHNOLOGY | INNOVATION | SOLUTIONS</small>
+                            ${S.reg ? `<small>Registration No: ${esc(S.reg)}</small>` : ""}
+                        </div>
                     </div>
 
-                </div>
+                    <div class="ct">CERTIFICATE OF COMPLETION</div>
+                    <i class="cu"></i>
+                    <p class="cs">This is to certify that</p>
+                    <div class="cn">${esc(d.name) || "&nbsp;"}</div>
 
-                <!-- CERTIFICATE TITLE -->
-                <div class="ct">
-                    CERTIFICATE OF COMPLETION
-                </div>
+                    <p class="cb">
+                        has successfully completed a
+                        <b>${esc(d.period)}</b>
+                        <b>${esc(d.ptype)}</b>
+                        internship as <b>${esc(d.role)}</b>
+                        at Lucuma Innovations, from
+                        <b>${fd(d.start)}</b> to <b>${fd(d.end)}</b>.
+                    </p>
 
-                <i class="cu"></i>
+                    <p class="cb sm">${rm}</p>
 
-                <!-- RECIPIENT -->
-                <p class="cs">
-                    This is to certify that
-                </p>
-
-                <div class="cn">
-                    ${esc(d.name) || "&nbsp;"}
-                </div>
-
-                <!-- CERTIFICATE DESCRIPTION -->
-                <p class="cb">
-                    has successfully completed a
-                    <b>${esc(d.period)}</b>
-                    <b>${esc(d.ptype)}</b>
-                    internship as
-                    <b>${esc(d.role)}</b>
-                    at Lucuma Innovations, from
-                    <b>${fd(d.start)}</b>
-                    to
-                    <b>${fd(d.end)}</b>.
-                </p>
-
-                <p class="cb sm">
-                    ${esc(remarks)}
-                </p>
-
-                <!-- SIGNATURES, STAMP AND QR -->
-                <div class="cbot">
-
-                    <div class="sg2">
-
-                        ${SIG.s1 ? `
-                            <img src="${SIG.s1}" alt="Signature">
-                        ` : ""}
-
-                        <span class="ln"></span>
-
-                        <b>${esc(d.s1n || "")}</b>
-
-                        <small>${esc(d.s1t || "")}</small>
-
-                    </div>
-
-                    <div class="sg2">
-
-                        ${SIG.s2 ? `
-                            <img src="${SIG.s2}" alt="Signature">
-                        ` : ""}
-
-                        <span class="ln"></span>
-
-                        <b>${esc(d.s2n || "")}</b>
-
-                        <small>${esc(d.s2t || "")}</small>
-
-                    </div>
-
-                    <img
-                        class="cst"
-                        src="assets/stamp.png"
-                        alt="Company Stamp"
-                    >
-
-                    <div class="cq">
-
-                        <div class="qr">
-                            ${qr(verifyUrl(record.number))}
+                    <div class="cbot">
+                        <div class="sg2">
+                            ${SIG.s1 ? `<img src="${SIG.s1}" alt="Signature">` : ""}
+                            <span class="ln"></span>
+                            <b>${esc(d.s1n || "")}</b>
+                            <small>${esc(d.s1t || "")}</small>
                         </div>
 
-                        <small>Scan to verify</small>
+                        <div class="sg2">
+                            ${SIG.s2 ? `<img src="${SIG.s2}" alt="Signature">` : ""}
+                            <span class="ln"></span>
+                            <b>${esc(d.s2n || "")}</b>
+                            <small>${esc(d.s2t || "")}</small>
+                        </div>
 
-                        <b>${esc(record.number)}</b>
+                        <img class="cst" src="assets/stamp.png" alt="Company stamp">
 
-                        <small>
-                            Issued ${fd(d.date)}
-                        </small>
-
-                        <small class="issuer">
-                            Issued by:
-                            ${esc(d.issuerName || "Lucuma Innovations")}
-                            <br>
-                            ${esc(d.issuerEmail || "")}
-                        </small>
-
+                        <div class="cq">
+                            <div class="qr">${qr(verifyUrl(record.number))}</div>
+                            <small>Scan to verify</small>
+                            <b>${esc(record.number)}</b>
+                            <small>Issued ${fd(d.date)}</small>
+                            <small class="issuer">
+                                Issued by: ${esc(d.issuerName || "Lucuma Innovations")}<br>
+                                ${esc(d.issuerEmail || "")}
+                            </small>
+                        </div>
                     </div>
-
                 </div>
-
-            </div>
-
-                    </article>
+            </article>
         `;
-}
+    }
 
     // =====================================================
     // INVOICE VIEWER
@@ -793,6 +744,24 @@ function certificate(d, record, S, SIG) {
 
     let lastRenderedSignature = null;
     let refreshBusy = false;
+    let downloadPrintTriggered = false;
+
+    async function loadImportedPdf(importId) {
+        $("loading").hidden = false;
+        $("error").hidden = true;
+        $("library").hidden = true;
+        $("documentContent").hidden = true;
+        const access = await getToken();
+        const response = await fetch(API + "/functions/v1/process-imported-pdf", {
+            method: "POST",
+            headers: { apikey: CFG.anonKey, Authorization: "Bearer " + access, "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "download", id: importId })
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.url) throw new Error(data.error || "Unable to open this private imported PDF.");
+        show(`<section class="viewer-message"><h2>${esc(data.name || "Imported PDF")}</h2><p>Approved imported document · private access</p><iframe title="Private imported PDF" src="${esc(data.url)}" style="width:100%;height:78vh;border:1px solid #e3e6ef;border-radius:12px;background:#fff"></iframe></section>`);
+        document.title = (data.name || "Imported PDF") + " | Lucuma Docs";
+    }
 
     async function init(silent = false) {
 
@@ -808,6 +777,11 @@ function certificate(d, record, S, SIG) {
                     fail("Supabase configuration is missing.");
                 }
 
+                return;
+            }
+
+            if (importedId) {
+                await loadImportedPdf(importedId);
                 return;
             }
 
@@ -846,11 +820,7 @@ function certificate(d, record, S, SIG) {
 
             if (publicResponse.ok) {
 
-                let record = await publicResponse.json();
-
-                if (Array.isArray(record)) {
-                    record = record[0] || null;
-                }
+                const record = await publicResponse.json();
 
                 if (
                     record &&
@@ -896,6 +866,16 @@ function certificate(d, record, S, SIG) {
                                     signatures
                                 )
                             );
+
+                            // The verification page opens this URL only after
+                            // the certificate has been confirmed as valid.
+                            if (
+                                new URLSearchParams(location.search).get("download") === "1" &&
+                                !downloadPrintTriggered
+                            ) {
+                                downloadPrintTriggered = true;
+                                setTimeout(() => window.print(), 900);
+                            }
 
                         }
 
@@ -1005,35 +985,39 @@ function certificate(d, record, S, SIG) {
     // =====================================================
 
 // BACK BUTTON
-$("backBtn").addEventListener("click", (e) => {
-    e.preventDefault();
-
-    if (document.referrer &&
-        new URL(document.referrer).origin === location.origin) {
-
-        history.back();
-
-    } else {
-
-        location.href = "document.html";
-
-    }
-});
+const backBtn = $("backBtn");
+if (backBtn) {
+    backBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        if (document.referrer) {
+            try {
+                if (new URL(document.referrer).origin === location.origin) {
+                    history.back();
+                    return;
+                }
+            } catch (_) {}
+        }
+        location.href = "index.html";
+    });
+}
 
 
 // PRINT BUTTON
-$("printBtn").addEventListener("click", () => {
-
-    if (!$("documentContent").hidden) {
-        window.print();
-    }
-
-});
-
-    $("librarySearch").addEventListener("input", e => {
-    libraryState.search = e.target.value;
-    renderLibrary();
+const printBtn = $("printBtn");
+if (printBtn) {
+    printBtn.addEventListener("click", () => {
+        const content = $("documentContent");
+        if (content && !content.hidden) window.print();
     });
+}
+
+    const librarySearch = $("librarySearch");
+    if (librarySearch) {
+        librarySearch.addEventListener("input", e => {
+            libraryState.search = e.target.value;
+            renderLibrary();
+        });
+    }
 
     document.querySelectorAll(".lib-filter").forEach(button => {
         button.addEventListener("click", () => {

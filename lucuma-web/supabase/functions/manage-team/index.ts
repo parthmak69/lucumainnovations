@@ -1,0 +1,37 @@
+import { createClient } from 'npm:@supabase/supabase-js@2';
+const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization, x-client-info, apikey, content-type','Access-Control-Allow-Methods':'POST, OPTIONS'};
+const json=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers:{...cors,'Content-Type':'application/json'}});
+const permissionKeys=['dashboard','letters','certificates','invoices','history','import_pdf','approve_documents','download_documents','delete_documents','team_view','team_manage','settings'];
+const cleanPermissions=(v:unknown)=>Array.isArray(v)?[...new Set(v.map(String).filter(x=>permissionKeys.includes(x)))]:[];
+const slug=(v:string)=>v.trim().toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'').slice(0,40);
+Deno.serve(async req=>{
+ if(req.method==='OPTIONS')return new Response('ok',{headers:cors});if(req.method!=='POST')return json({error:'Method not allowed'},405);
+ try{
+  const url=Deno.env.get('SUPABASE_URL')!;const secret=JSON.parse(Deno.env.get('SUPABASE_SECRET_KEYS')!);const pub=JSON.parse(Deno.env.get('SUPABASE_PUBLISHABLE_KEYS')!);const service=secret.default,anon=pub.default;if(!url||!service||!anon)throw new Error('Supabase Edge Function secrets are not configured.');
+  const authorization=req.headers.get('Authorization');if(!authorization)return json({error:'Authentication required.'},401);const userClient=createClient(url,anon,{global:{headers:{Authorization:authorization}}});const {data:{user},error:authErr}=await userClient.auth.getUser();if(authErr||!user)return json({error:'Invalid or expired session.'},401);
+  const admin=createClient(url,service,{auth:{autoRefreshToken:false,persistSession:false}});const {data:actor,error:actorErr}=await admin.from('profiles').select('id,email,role,active').eq('id',user.id).maybeSingle();if(actorErr||!actor?.active||!['admin','ceo'].includes(actor.role))return json({error:'Only active Admin and CEO accounts can manage team members.'},403);
+  const body=await req.json();const action=String(body.action||'');
+  if(action==='list'){const {data,error}=await admin.from('profiles').select('id,email,name,role,role_label,member_type,permissions,active,created_at').order('created_at',{ascending:true});if(error)throw error;return json({members:data||[]})}
+  if(action==='invite'){
+   const email=String(body.email||'').trim().toLowerCase(),name=String(body.name||'').trim(),memberType=body.memberType==='core'?'core':'employee';const role=memberType==='employee'?'member':slug(String(body.role||''));const roleLabel=memberType==='employee'?'Employee':String(body.roleLabel||'').trim().slice(0,48);const redirectTo=String(body.redirectTo||'').trim();
+   if(!/^\S+@\S+\.\S+$/.test(email)||email.length>254)return json({error:'Enter a valid work email address.'},400);if(!name||name.length>120)return json({error:'Enter a name (maximum 120 characters).'},400);if(memberType==='core'&&(!role||role==='member'||!roleLabel))return json({error:'Enter a custom core leadership title.'},400);if(actor.role==='ceo'&&['admin','ceo'].includes(role))return json({error:'Only Admin can invite Admin or CEO accounts.'},403);if(!/^https?:\/\//i.test(redirectTo))return json({error:'A valid invitation redirect URL is required.'},400);
+   const permissions=memberType==='employee'?['dashboard','letters','certificates','invoices','history','download_documents']:cleanPermissions(body.permissions);const {data:invited,error:inviteErr}=await admin.auth.admin.inviteUserByEmail(email,{data:{name},redirectTo});if(inviteErr)throw inviteErr;if(!invited.user)throw new Error('Supabase did not return the invited user.');
+   const {error:profileErr}=await admin.from('profiles').upsert({id:invited.user.id,email,name,role,role_label:roleLabel,member_type:memberType,permissions,active:true},{onConflict:'id'});if(profileErr)throw profileErr;return json({success:true,id:invited.user.id,email,role,memberType,permissions});
+  }
+  if(action==='update'){
+   const id=String(body.id||''),role=body.role==='member'?'member':slug(String(body.role||'')),memberType=role==='member'?'employee':'core',roleLabel=role==='member'?'Employee':String(body.roleLabel||role).trim().slice(0,48);if(!id||!role||!roleLabel)return json({error:'Invalid member or role.'},400);if(id===user.id)return json({error:'You cannot change your own role.'},403);
+   const {data:target,error:targetErr}=await admin.from('profiles').select('id,role,active').eq('id',id).maybeSingle();if(targetErr||!target)return json({error:'Team member not found.'},404);if(actor.role==='ceo'&&(['admin','ceo'].includes(target.role)||['admin','ceo'].includes(role)))return json({error:'CEO cannot modify or assign Admin/CEO roles.'},403);
+   if(actor.role==='admin'&&target.role==='admin'&&role!=='admin'){const {count,error}=await admin.from('profiles').select('id',{count:'exact',head:true}).eq('role','admin').eq('active',true);if(error)throw error;if((count||0)<=1)return json({error:'At least one active Admin account must remain.'},409)}
+   const patch={role,role_label:roleLabel,member_type:memberType,permissions:role==='member'?['dashboard','letters','certificates','invoices','history','download_documents']:cleanPermissions(body.permissions)};const {error:updateErr}=await admin.from('profiles').update(patch).eq('id',id);if(updateErr)throw updateErr;return json({success:true});
+  }
+  if(action==='set-status'){
+   const id=String(body.id||''),active=body.active===true;if(!id||id===user.id)return json({error:'Invalid target account.'},400);const {data:target,error}=await admin.from('profiles').select('id,role,active').eq('id',id).maybeSingle();if(error||!target)return json({error:'Team member not found.'},404);if(actor.role==='ceo'&&['admin','ceo'].includes(target.role))return json({error:'CEO cannot change Admin/CEO account status.'},403);if(actor.role==='ceo'&&active===false&&['admin','ceo'].includes(target.role))return json({error:'CEO cannot revoke this account.'},403);
+   if(!active&&target.role==='admin'){const {count,error:countErr}=await admin.from('profiles').select('id',{count:'exact',head:true}).eq('role','admin').eq('active',true);if(countErr)throw countErr;if((count||0)<=1)return json({error:'At least one active Admin account must remain.'},409)}
+   const {error:updateErr}=await admin.from('profiles').update({active}).eq('id',id);if(updateErr)throw updateErr;const {error:authErr2}=await admin.auth.admin.updateUserById(id,{ban_duration:active?'none':'876000h'});if(authErr2)throw authErr2;return json({success:true,active});
+  }
+  if(action==='delete'){
+   if(actor.role!=='admin')return json({error:'Only Admin can permanently delete member accounts.'},403);const id=String(body.id||'');if(!id||id===user.id)return json({error:'You cannot delete your own account.'},400);const {data:target,error}=await admin.from('profiles').select('id,role').eq('id',id).maybeSingle();if(error||!target)return json({error:'Team member not found.'},404);if(['admin','ceo'].includes(target.role))return json({error:'Core Admin/CEO accounts cannot be deleted from this page.'},403);const {error:delErr}=await admin.auth.admin.deleteUser(id);if(delErr)throw delErr;return json({success:true});
+  }
+  return json({error:'Unknown action.'},400);
+ }catch(e){console.error('manage-team error',e);return json({error:e instanceof Error?e.message:'Team management failed.'},500)}
+});
