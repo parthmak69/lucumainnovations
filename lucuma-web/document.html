@@ -211,36 +211,202 @@
             }
         }
 
-        @media print {
-            @page {
-                size: A4;
-                margin: 12mm;
-            }
+/* =========================================
+   PROFESSIONAL DOCUMENT PRINT SETTINGS
+========================================= */
 
-            .viewer-top {
-                display: none !important;
-            }
+@page {
+    size: A4;
+    margin: 12mm;
+}
 
-            body {
-                background: white;
-            }
+@media print {
 
-            .viewer-wrap {
-                margin: 0;
-                padding: 0;
-                max-width: none;
-            }
+    /* Hide application navigation */
+    .viewer-top,
+    #library,
+    #loading,
+    #error {
+        display: none !important;
+    }
 
-            .viewer-document {
-                box-shadow: none;
-                padding: 0;
-                max-width: none;
-            }
+    /* Reset browser layout */
+    html,
+    body {
+        width: 100% !important;
+        min-height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+        color: #172033 !important;
+    }
 
-            .viewer-qr {
-                break-inside: avoid;
-            }
-        }
+    body {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* Main document container */
+    .viewer-wrap {
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+    }
+
+    #documentContent {
+        display: block !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* Preserve document dimensions */
+    .viewer-document {
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+        box-shadow: none !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Keep certificate dimensions separate from other documents */
+    .viewer-document.page.cert {
+        width: 1123px !important;
+        height: 794px !important;
+        max-width: none !important;
+        margin: 0 auto !important;
+        padding: 0 !important;
+        position: relative !important;
+        overflow: hidden !important;
+        box-sizing: border-box !important;
+        page: cert !important;
+    }
+
+    /* Preserve certificate design */
+    .viewer-certificate {
+        border: 9px double #b69a55 !important;
+        text-align: center !important;
+    }
+
+    /* Preserve invoice layout */
+    .viewer-invoice .two {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 20px !important;
+    }
+
+    .viewer-invoice table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+    }
+
+    .viewer-invoice th,
+    .viewer-invoice td {
+        padding: 9px !important;
+        text-align: left !important;
+    }
+
+    .viewer-invoice .box {
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+    }
+
+    /* Preserve signatures and QR codes */
+    .viewer-signatures,
+    .viewer-qr {
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+    }
+
+    .viewer-qr svg {
+        width: 110px !important;
+        height: 110px !important;
+    }
+
+    /* Avoid splitting table rows */
+    tr {
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+    }
+
+    /* Remove unwanted link decorations */
+    a {
+        color: inherit !important;
+        text-decoration: none !important;
+    }
+}
+
+        #library table th,
+#library table td {
+    padding: 13px;
+    border-bottom: 1px solid #e5eaf0;
+    white-space: nowrap;
+}
+
+#library table th {
+    background: #f5f7fa;
+}
+
+.lib-filter {
+    border: 1px solid #dfe5ed;
+    background: white;
+    padding: 9px 16px;
+    border-radius: 7px;
+    cursor: pointer;
+}
+
+.lib-filter:hover {
+    background: #172033;
+    color: white;
+}
+
+.lib-open {
+    display: inline-block;
+    padding: 7px 13px;
+    background: #172033;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+}
+
+/* CERTIFICATE PRINT FORMAT */
+
+/* CERTIFICATE PRINT FORMAT */
+
+@page cert {
+    size: A4 landscape;
+    margin: 0;
+}
+
+@media print {
+
+    .viewer-document.page.cert {
+        width: 1123px !important;
+        height: 794px !important;
+        margin: 0 auto !important;
+        padding: 0 !important;
+        position: relative !important;
+        overflow: hidden !important;
+        box-shadow: none !important;
+        page: cert !important;
+        print-color-adjust: exact !important;
+        -webkit-print-color-adjust: exact !important;
+    }
+
+    .viewer-document.page.cert .cin {
+        position: absolute !important;
+        inset: 46px 96px 50px !important;
+        box-sizing: border-box !important;
+    }
+
+    .viewer-document.page.cert .cbot {
+        margin-top: auto !important;
+    }
+}
     </style>
 </head>
 
@@ -250,23 +416,67 @@
     <div class="viewer-brand">LUCUMA DOCS</div>
 
     <div class="viewer-actions">
-        <a href="index.html">Back</a>
+        <a href="document.html" id="backBtn">Back</a>
         <button id="printBtn" type="button">Print / PDF</button>
     </div>
 </header>
 
 <main class="viewer-wrap">
 
+    <!-- Loading -->
     <div id="loading" class="viewer-message">
-        Loading document...
+        <h2>Loading document...</h2>
+        <p>Please wait while we retrieve your document.</p>
     </div>
 
-    <div id="error" class="viewer-message error" hidden>
-        <h2>Document unavailable</h2>
+    <!-- Error -->
+    <section id="error" class="viewer-message error" hidden>
+        <h2>Unable to Load Document</h2>
         <p id="errorMessage"></p>
-    </div>
+        <a href="verify.html">Return to Verification</a>
+    </section>
 
+    <!-- Individual Document -->
     <div id="documentContent" hidden></div>
+
+    <!-- Document Library -->
+    <section id="library" class="viewer-message" hidden>
+
+        <h2>Lucuma Docs — Document Library</h2>
+
+        <p id="libraryMessage">Loading your documents...</p>
+
+        <input
+            id="librarySearch"
+            type="search"
+            placeholder="Search by document number, name or type..."
+            style="width:100%;max-width:500px;padding:12px;margin:15px 0;border:1px solid #dfe5ed;border-radius:8px;"
+        >
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:20px;">
+            <button class="lib-filter" data-filter="all">All</button>
+            <button class="lib-filter" data-filter="letter">Letters</button>
+            <button class="lib-filter" data-filter="certificate">Certificates</button>
+            <button class="lib-filter" data-filter="invoice">Invoices</button>
+        </div>
+
+        <div style="overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;text-align:left;">
+                <thead>
+                    <tr>
+                        <th>Document No.</th>
+                        <th>Type</th>
+                        <th>Name</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="libraryRows"></tbody>
+            </table>
+        </div>
+
+    </section>
 
 </main>
 

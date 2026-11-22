@@ -22,6 +22,18 @@ let S=Object.fromEntries(SF.map(f=>[f[0],f[2]]));
 let SIG={},ME=null,DOCS=[],TEAM=[],cur=null,mode='letter';
 let items=[{d:'',s:'',a:''}],bodyEdited=false,requestedRole=null;
 
+function roleLabel(role) {
+    const labels = {
+        admin: 'Admin',
+        ceo: 'CEO',
+        cto: 'CTO',
+        member: 'Team Member',
+        core: 'Core Member'
+    };
+
+    return labels[role] || 'Unknown Role';
+}
+
 const BODY={
  offer:"We are pleased to offer you the position of {role} at Lucuma Innovations, with effect from {start}.\n\nYour compensation will be {pay}. Your responsibilities, reporting structure and other terms of employment will be communicated separately in writing.\n\nThis offer is valid until {valid}. Please sign and return the acceptance below to confirm.\n\nWe look forward to welcoming you to Lucuma Innovations.",
  appt:"We are pleased to formally appoint you as {role} of Lucuma Innovations, effective from {start}.\n\nConsidering your capabilities, leadership and potential, we believe you will be a valuable addition to our team.\n\nYour responsibilities, reporting structure, remuneration and other terms of employment will be communicated separately in writing.\n\nWe congratulate you on your appointment and look forward to your contributions towards the growth and success of Lucuma Innovations.",
@@ -92,7 +104,9 @@ async function token(){
    a=AUTH();
   }catch(e){
    logout();
-   throw new Error('Session expired. Sign in again.');
+    const err=new Error('Session expired. Sign in again.');
+    err.cause=e;
+    throw err;
   }
  }
  return a.access;
@@ -149,9 +163,13 @@ async function boot(){
    return logout();
   }
   if(requestedRole && ME.role!==requestedRole){
-   const actual=ME.role=='core'?'Core Member':'Team Member';
-   logout();
-   $('lm').textContent='This account is registered as '+actual+'. Select the matching role to sign in.';
+  const actual = roleLabel(ME.role);
+
+logout();
+
+$('lm').textContent =
+    'This account is registered as ' + actual +
+    '. Select the matching role to sign in.';
    requestedRole=null;
    return;
   }
@@ -167,7 +185,7 @@ async function boot(){
   $('login').hidden=true;
   $('shell').hidden=false;
   document.body.dataset.role=ME.role;
-  $('who').textContent=(ME.name||ME.email)+' · '+(ME.role=='core'?'Core member':'Team member');
+  $('who').textContent = (ME.name || ME.email) + ' · ' + roleLabel(ME.role);
   go('letter');
  }catch(e){
   $('lm').textContent=e.message;
@@ -245,7 +263,9 @@ function letterPage(d){
   intern:['INTERNSHIP OFFER LETTER',`Internship Offer – ${d.role} (${d.ptype})`,'ACCEPTANCE OF INTERNSHIP OFFER','the internship offer as']
  }[d.kind];
  return`<div class="page lt"><div class="lh"><div class="logo"><img src="assets/logo.png"></div><div><h1>LUCUMA INNOVATIONS</h1><div class="tag">TECHNOLOGY | INNOVATION | SOLUTIONS</div></div></div>
-<div class="contact">${esc(S.city)} | ${esc(S.web)} | ${esc(S.email)}</div><hr class="rule">
+<div class="contact">${esc(S.city)} | ${esc(S.web)} | ${esc(S.email)}</div>
+${S.reg ? `<div class="contact">Registration No: ${esc(S.reg)}</div>` : ''}
+<hr class="rule">
 <div class="lbody"><div class="row"><span><b>Ref. No.:</b> ${esc(d.ref)}</span><span><b>Date:</b> ${fd(d.date)}</span></div>
 <div class="ttl">${T[0]}</div><i></i><p><b>To:</b> ${esc(d.name)}</p><p><b>Subject:</b> ${esc(T[1])}</p><p>Dear ${esc(d.name)},</p>${paras}
 <p style="margin-bottom:0">Sincerely,<br><b>For Lucuma Innovations</b></p>
@@ -267,7 +287,8 @@ const rdC=()=>({
 function certPage(d){
  const rm=esc((d.remarks||'').replace(/\{name\}/g,d.name));
  return`<div class="page cert"><div class="ccorner a"></div><div class="ccorner b"></div><div class="cframe"></div><div class="cin">
-<div class="chead"><img src="assets/logo.png"><div><b>LUCUMA INNOVATIONS</b><small>TECHNOLOGY | INNOVATION | SOLUTIONS</small></div></div>
+<div class="chead"><img src="assets/logo.png"><div><b>LUCUMA INNOVATIONS</b><small>TECHNOLOGY | INNOVATION | SOLUTIONS</small>
+${S.reg ? `<small>Registration No: ${esc(S.reg)}</small>` : ''}</div></div>
 <div class="ct">CERTIFICATE OF COMPLETION</div><i class="cu"></i><p class="cs">This is to certify that</p><div class="cn">${esc(d.name)||'&nbsp;'}</div>
 <p class="cb">has successfully completed a <b>${esc(d.period)}</b> <b>${esc(d.ptype)}</b> internship as <b>${esc(d.role)}</b> at Lucuma Innovations, from <b>${fd(d.start)}</b> to <b>${fd(d.end)}</b>.</p><p class="cb sm">${rm}</p>
 <div class="cbot"><div class="sg2">${SIG.s1?`<img src="${SIG.s1}">`:''}<span class="ln"></span><b>${esc(d.s1n)}</b><small>${esc(d.s1t)}</small></div><div class="sg2">${SIG.s2?`<img src="${SIG.s2}">`:''}<span class="ln"></span><b>${esc(d.s2n)}</b><small>${esc(d.s2t)}</small></div>
@@ -575,7 +596,8 @@ const KL={
 };
 
 function histDraw(){
- const core=ME&&ME.role=='core';
+const canManageLibrary =
+    ME && ['ceo', 'cto', 'admin'].includes(ME.role);
 
  $('hmsg').textContent=DOCS.length+' document'+(DOCS.length==1?'':'s');
 
@@ -595,8 +617,8 @@ function histDraw(){
     <td>
      <button class="btn sm" data-open="${d.id}">Open / QR</button>
      ${c?`<button class="btn sm" data-copy="${esc(d.number)}">Copy verify link</button>`:''}
-     ${c&&core?`<button class="btn sm" data-rev="${d.id}">${d.status=='valid'?'Revoke':'Restore'}</button>`:''}
-     ${core?`<button class="btn sm danger" data-rm="${d.id}">Delete ${c?'certificate':'document'}</button>`:''}
+     ${c&&canManageLibrary?`<button class="btn sm" data-rev="${d.id}">${d.status=='valid'?'Revoke':'Restore'}</button>`:''}
+     ${canManageLibrary?`<button class="btn sm danger" data-rm="${d.id}">Delete ${c?'certificate':'document'}</button>`:''}
     </td>
    </tr>`;
   }).join('')||'<tr><td colspan="5">Nothing saved yet.</td></tr>');
@@ -660,10 +682,12 @@ async function teamLoad(){
      <td>${esc(p.email)}</td>
      <td><input data-n="${p.id}" value="${esc(p.name||'')}"></td>
      <td>
-      <select data-r="${p.id}" ${me?'disabled':''}>
-       <option value="member" ${p.role=='member'?'selected':''}>Team member</option>
-       <option value="core" ${p.role=='core'?'selected':''}>Core member</option>
-      </select>
+    <select data-r="${p.id}" ${me?'disabled':''}>
+        <option value="member" ${p.role==='member'?'selected':''}>Team Member</option>
+        <option value="admin" ${p.role==='admin'?'selected':''}>Admin</option>
+        <option value="ceo" ${p.role==='ceo'?'selected':''}>CEO</option>
+        <option value="cto" ${p.role==='cto'?'selected':''}>CTO</option>
+    </select>
      </td>
      <td>
       <input type="checkbox" data-a="${p.id}" ${p.active?'checked':''} ${me?'disabled':''} style="width:auto">
@@ -789,13 +813,13 @@ $('pdf').onclick=async()=>{
   if(!await save())return;
  }
 
- const n=(
-  mode=='letter'
-   ?val('lref')+' '+val('name')
-   :mode=='cert'
-    ?val('cno')+' '+val('cname')
-    :val('inum')+' '+val('cn')
- ).replace(/[\/\\:*?"<>|]/g,'-').trim()||'Lucuma document';
+const n = (
+    mode == 'letter'
+        ? val('lref') + ' ' + val('name')
+        : mode == 'cert'
+            ? val('cno') + ' ' + val('cname')
+            : val('inum') + ' ' + val('cn')
+).replace(/[\\/:*?"<>|]/g, '-').trim() || 'Lucuma document';
 
  const t=document.title;
  document.title=n;

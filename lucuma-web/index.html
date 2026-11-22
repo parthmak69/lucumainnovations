@@ -23,8 +23,10 @@ content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inli
 
     <label>Account role</label>
     <select id="lr" required>
-      <option value="member">Team Member</option>
-      <option value="core">Core Member</option>
+        <option value="member">Team Member</option>
+        <option value="admin">Admin</option>
+        <option value="ceo">CEO</option>
+        <option value="cto">CTO</option>
     </select>
 
     <label>Email</label>
@@ -75,7 +77,7 @@ content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inli
 
       <label>Confirm new password</label>
       <input id="rc" type="password" minlength="8"
-             autocomplete="new-password" required
+       autocomplete="new-password" required disabled>
              placeholder="Re-enter new password">
 
       <button class="btn p" type="submit"
