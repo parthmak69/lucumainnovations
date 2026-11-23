@@ -1,0 +1,28 @@
+{
+  "name": "lucuma-docs-backend",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/server.js",
+    "dev": "node --env-file=.env.development --watch src/server.js",
+    "start:production": "node --env-file=.env.production src/server.js"
+  },
+  "keywords": [],
+  "dependencies": {
+    "@supabase/supabase-js": "^2.119.2",
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.10",
+    "express": "^5.3.0",
+    "helmet": "^8.3.0",
+    "imapflow": "^1.7.8",
+    "mailparser": "^3.15.0",
+    "mysql2": "^3.24.6",
+    "nodemailer": "^10.6.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  }
+}

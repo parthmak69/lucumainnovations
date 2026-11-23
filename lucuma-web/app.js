@@ -609,10 +609,25 @@ function go(m){
 
 
 async function dashboardDraw(){
+ const hour=new Date().getHours(),greet=hour<12?'Good morning':hour<17?'Good afternoon':'Good evening';
+ const roleNames={admin:'Workspace administrator',ceo:'Chief Executive Officer',cto:'Chief Technology Officer',member:'Team member',core:'Core team member'};
+ if($('dashGreeting'))$('dashGreeting').textContent=`${greet}, ${ME?.name||'there'}!`;
+ if($('dashRoleMessage'))$('dashRoleMessage').textContent=`${roleNames[ME?.role]||roleLabel(ME?.role)} · Here's your Lucuma workspace at a glance.`;
+ if($('dashGreetingEyebrow'))$('dashGreetingEyebrow').textContent=`${roleLabel(ME?.role).toUpperCase()} WORKSPACE`;
+ if($('dashTaskOverview')){
+  try{
+   const rows=await rest('tasks?select=id,title,status,progress,due_date,created_by,assignee_ids&order=created_at.desc&limit=100');
+   const mine=(rows||[]).filter(t=>t.created_by===ME.id||(t.assignee_ids||[]).includes(ME.id));
+   const shown=['admin','ceo','cto'].includes(ME?.role)?(rows||[]):mine;
+   const counts=[['Assigned',shown.filter(t=>t.status==='assigned').length],['In progress',shown.filter(t=>t.status==='in_progress').length],['Completed',shown.filter(t=>t.status==='completed').length]];
+   $('dashTaskOverview').innerHTML=counts.map(([label,n])=>`<div class="dash-task-stat"><small>${label}</small><b>${n}</b></div>`).join('')+
+    `<div class="dash-task-next">${shown.slice(0,3).map(t=>`<div class="recent-row"><div><b>${esc(t.title)}</b><small>${esc(t.status||'assigned')} · ${t.due_date?'Due '+esc(t.due_date):'No due date'}</small></div><span class="status-pill">${Math.max(0,Math.min(100,+t.progress||0))}%</span></div>`).join('')||'<p class="msg">No tasks assigned or created yet. Your team workspace is ready.</p>'}</div>`;
+  }catch(e){$('dashTaskOverview').innerHTML='<p class="msg">Task overview will appear after the collaboration database migration is applied.</p>';}
+ }
  const count=DOCS.length,letters=DOCS.filter(d=>d.type==='letter').length,certs=DOCS.filter(d=>d.type==='certificate').length,invoices=DOCS.filter(d=>d.type==='invoice').length;
  const invoiceTotals=DOCS.filter(d=>d.type==='invoice').reduce((a,d)=>{const x=d.data||{},subtotal=(x.items||[]).reduce((n,i)=>n+(+i.a||0),0),total=subtotal+subtotal*(+x.tax||0)/100;a.total+=total;a.paid+=Math.min(total,Math.max(0,+x.amountPaid||0));return a;},{total:0,paid:0});
  const money=n=>new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:0}).format(n);
- $('dashStats').innerHTML=[['Total documents',count,'Across your workspace'],['Letters',letters,'Offer and appointment'],['Certificates',certs,'Issued certificates'],['Invoices',invoices,'Tracked invoices'],['Invoice value',money(invoiceTotals.total),'Saved invoice totals'],['Amount received',money(invoiceTotals.paid),'Recorded payments']].map(x=>`<article class="stat-card"><span>${x[0]}</span><strong>${x[1]}</strong><small>${x[2]}</small></article>`).join('');
+ $('dashStats').innerHTML=[['Total documents',count,'Across your workspace'],['Letters',letters,'Offer and appointment'],['Certificates',certs,'Issued certificates'],['Invoices',invoices,'Tracked invoices'],['Invoice value',money(invoiceTotals.total),'Saved invoice totals'],['Amount received',money(invoiceTotals.paid),'Recorded payments']].map((x,i)=>`<article class="stat-card"><span class="stat-icon" aria-hidden="true">${['▦','✉','✦','▤','₹','✓'][i]}</span><span>${x[0]}</span><strong>${x[1]}</strong><small>${x[2]}</small></article>`).join('');
  $('recentDocs').innerHTML=DOCS.slice(0,6).map(d=>`<div class="recent-row"><div><b>${esc(d.number)}</b><small>${esc(d.title||d.type)} · ${new Date(d.created_at).toLocaleDateString('en-IN')}</small></div><span class="status-pill ${d.status==='valid'?'good':'warn'}">${esc(d.status||'valid')}</span></div>`).join('')||'<p class="msg">No documents yet.</p>';
  const due=DOCS.filter(d=>d.type==='invoice').map(d=>{const x=d.data||{},sub=(x.items||[]).reduce((n,i)=>n+(+i.a||0),0),total=sub+sub*(+x.tax||0)/100;return {d,balance:Math.max(0,total-(+x.amountPaid||0))}}).filter(x=>x.balance>0);
  let notifications=[];
@@ -794,7 +809,16 @@ async function saveSet(){
 
 /* EVENT HANDLERS */
 
-$('nav').onclick=e=>e.target.dataset.m&&go(e.target.dataset.m);
+$('nav').onclick=e=>{
+ const b=e.target.closest('[data-m]');
+ if(b)go(b.dataset.m);
+};
+document.querySelectorAll('.dash-shortcut[data-m]').forEach(b=>{
+ b.addEventListener('click',()=>{
+  const target=b.dataset.m;
+  if(['letter','cert','invoice'].includes(target))go(target);
+ });
+});
 $('quickCreate').onclick=()=>go('letter');
 $('historySearch').oninput=()=>histDraw();
 $('historyType').onchange=()=>histDraw();

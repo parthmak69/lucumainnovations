@@ -110,6 +110,8 @@ content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inli
     <button data-m="cert">Certificate</button>
     <button data-m="invoice">Invoice</button>
     <button data-m="hist">History</button>
+    <a class="co-nav-link" href="collaboration.html">Tasks & Connect</a>
+    <a class="co-nav-link" href="mail.html">Lucuma Mail</a>
     <button data-m="team" class="core">Team</button>
     <button data-m="set" class="core">Settings</button>
 
@@ -118,9 +120,11 @@ content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inli
   </div>
 
   <section id="dashboard" class="wrap dashboard" hidden>
-    <div class="dash-head"><div><span class="eyebrow">WORKSPACE OVERVIEW</span><h2>Good to see you.</h2><p class="msg">Your document workspace, organised at a glance.</p></div><button class="btn p" data-m="letter" id="quickCreate">＋ New document</button></div>
+    <div class="dash-head"><div><span class="eyebrow" id="dashGreetingEyebrow">WORKSPACE OVERVIEW</span><h2 id="dashGreeting">Good to see you.</h2><p class="msg" id="dashRoleMessage">Your document workspace, organised at a glance.</p></div><button class="btn p" data-m="letter" id="quickCreate">＋ New document</button></div>
     <div class="stats-grid" id="dashStats"></div>
     <div class="dash-grid"><article class="glass-panel recent-docs-panel"><div class="panel-heading"><div><span class="eyebrow">YOUR LIBRARY</span><h3>Recently created</h3></div><button class="btn sm" type="button" data-m="hist">View all</button></div><div id="recentDocs" class="recent-list"></div></article><article class="glass-panel notifications-panel"><div class="panel-heading"><div><span class="eyebrow">ATTENTION</span><h3>Things to review</h3></div><span class="dash-orb" aria-hidden="true">✦</span></div><div id="dashNotifications" class="recent-list"><p class="msg">No notifications loaded.</p></div></article></div>
+    <section class="glass-panel dash-work-panel"><div class="panel-heading"><div><span class="eyebrow">TEAM ACTIVITY</span><h3>Your task overview</h3></div><a class="btn sm" href="collaboration.html">Open workspace →</a></div><div id="dashTaskOverview" class="dash-task-grid"><p class="msg">Loading task overview…</p></div></section>
+    <section class="dash-shortcuts"><button class="glass-panel dash-shortcut" data-m="letter"><span>＋</span><b>Create a letter</b><small>Prepare an offer or appointment letter</small></button><button class="glass-panel dash-shortcut" data-m="cert"><span>✦</span><b>Issue a certificate</b><small>Generate a verifiable certificate</small></button><a class="glass-panel dash-shortcut" href="collaboration.html"><span>✓</span><b>Team workspace</b><small>Review tasks and conversations</small></a></section>
   </section>
 
   <div class="app" id="app">

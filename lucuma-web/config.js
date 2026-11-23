@@ -1,7 +1,12 @@
-// Fill these in once, then upload. The anon key is public by design; never put the service_role key here.
-window.CFG={
-  supabaseUrl:'https://glsbsmgzxsshmrvtwqii.supabase.co',            // e.g. https://abcdxyz.supabase.co
-  anonKey:'sb_publishable__aztK115b1n0yscbTEjHNA_zD7DCnn_',                // Supabase → Project settings → API → anon public
-  siteUrl:'https://docs.lucumainnovations.com'                 // your live address, e.g. https://docs.yourdomain.com (used inside certificate QR codes)
-  // siteUrl:'http://192.168.1.105:5500'
+window.CFG = {
+    supabaseUrl: 'https://glsbsmgzxsshmrvtwqii.supabase.co',
+
+    anonKey: 'sb_publishable__aztK115b1n0yscbTEjHNA_zD7DCnn_',
+
+    siteUrl: 'https://docs.lucumainnovations.com',
+    // siteUrl:'http://192.168.1.105:5500'
+
+    // chatApiBaseUrl: 'chat-api/api.php'
+    chatApiBaseUrl: 'http://localhost:8000/chat-api/api.php',
+    backendApiBaseUrl: 'http://localhost:4000/api'
 };

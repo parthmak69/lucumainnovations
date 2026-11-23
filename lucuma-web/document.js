@@ -100,6 +100,7 @@ async function loadLibrary() {
     }
 
     // Retrieve documents through the protected database function.
+    let result = [];
     const response = await fetch(
         API + "/rest/v1/rpc/get_document_library",
         {
@@ -114,13 +115,16 @@ async function loadLibrary() {
         }
     );
 
-    const result = await response.json();
-
-    if (!response.ok) {
-        throw new Error(
-            result.message ||
-            "Unable to retrieve the document library."
+    if (response.ok) {
+        result = await response.json();
+    } else {
+        // Fallback for installations where the optional library RPC has not
+        // been deployed. RLS still governs which document rows are returned.
+        const fallback = await rest(
+            "documents?select=id,type,number,title,data,status,created_at,created_by,approval_status,submitted_at&order=created_at.desc&limit=250",
+            access
         );
+        result = fallback || [];
     }
 
     // Merge approved private imported PDFs into the same library. The actual PDF
@@ -820,7 +824,8 @@ async function loadLibrary() {
 
             if (publicResponse.ok) {
 
-                const record = await publicResponse.json();
+                let record = await publicResponse.json();
+                if (Array.isArray(record)) record = record[0];
 
                 if (
                     record &&
