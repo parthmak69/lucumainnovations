@@ -105,7 +105,10 @@ async function internalMailDb(request, env) {
   const params = Array.isArray(body.params) ? body.params : [];
   if (!sql || sql.length > 8000 || /;|--|\/\*|\*\//.test(sql)) fail('Invalid query.', 400);
   const normalized = sql.replace(/\s+/g, ' ').trim();
-  const tableMatches = [...normalized.matchAll(/\b(?:FROM|JOIN|INTO|UPDATE)\s+([a-z_][a-z0-9_]*)/ig)].map(m => m[1].toLowerCase());
+  const tableMatches = [
+  ...normalized.matchAll(/\b(?:FROM|JOIN|INTO)\s+([a-z_][a-z0-9_]*)/ig),
+  ...normalized.matchAll(/^UPDATE\s+([a-z_][a-z0-9_]*)/ig)
+].map(m => m[1].toLowerCase());
   if (!tableMatches.length || tableMatches.some(t => !['mail_accounts','mail_items'].includes(t))) fail('Only mail tables are available.', 403);
   if (!/^(SELECT|INSERT|UPDATE|DELETE)\b/i.test(normalized)) fail('Query type not allowed.', 403);
   if (/\b(ATTACH|DETACH|PRAGMA|DROP|ALTER|CREATE|REPLACE|VACUUM|TRIGGER|VIEW)\b/i.test(normalized)) fail('Query operation not allowed.', 403);
