@@ -69,7 +69,7 @@ router.post('/account', async (req, res, next) => {
     await client.connect();
     await client.logout();
     const encrypted = encrypt(password);
-    await db.execute(`INSERT INTO mail_accounts(user_id,email,password_enc,provider) VALUES(?,?,?,'purelymail') ON DUPLICATE KEY UPDATE email=VALUES(email),password_enc=VALUES(password_enc),updated_at=CURRENT_TIMESTAMP`, [req.user.id, email, encrypted]);
+    await db.execute(`INSERT INTO mail_accounts(user_id,email,password_enc,provider) VALUES(?,?,?,'purelymail') ON CONFLICT(user_id) DO UPDATE SET email=excluded.email,password_enc=excluded.password_enc,updated_at=CURRENT_TIMESTAMP`, [req.user.id, email, encrypted]);
     res.json({ success: true, email });
   } catch (e) { if (e.code === 'EAUTH' || e.authenticationFailed) return res.status(400).json({ error: 'Purelymail rejected these credentials. Check the mailbox address and password.' }); next(e); }
 });

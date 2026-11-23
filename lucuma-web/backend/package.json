@@ -1,7 +1,7 @@
 {
   "name": "lucuma-docs-backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "Lucuma Docs mail backend using Cloudflare D1 bridge and Purelymail IMAP/SMTP",
   "type": "module",
   "main": "index.js",
   "scripts": {
