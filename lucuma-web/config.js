@@ -1,13 +1,12 @@
-window.CFG = {
-    supabaseUrl: 'https://glsbsmgzxsshmrvtwqii.supabase.co',
+(function () {
+    const isProduction =
+        window.location.hostname === 'docs.lucumainnovations.com';
 
-    anonKey: 'sb_publishable__aztK115b1n0yscbTEjHNA_zD7DCnn_',
+    const configFile = isProduction
+        ? '/config.production.js'
+        : '/config.development.js';
 
-    siteUrl: 'https://docs.lucumainnovations.com',
-    // siteUrl:'http://192.168.1.105:5500'
-
-    // chatApiBaseUrl: 'chat-api/api.php'
-    // chatApiBaseUrl: 'http://localhost:8000/chat-api/api.php',
-    chatApiBaseUrl: 'https://lucuma-api.lucumainnovations.workers.dev/chat-api/api.php',
-    backendApiBaseUrl: 'http://localhost:4000/api'
-};
+    document.write(
+        '<script src="' + configFile + '"></' + 'script>'
+    );
+})();

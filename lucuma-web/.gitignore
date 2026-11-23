@@ -6,8 +6,6 @@
 
 # PHP configuration secrets
 chat-api/config.php
-config.development.js
-config.production.js
 
 # Node dependencies
 node_modules/
