@@ -7,6 +7,7 @@ window.CFG = {
     // siteUrl:'http://192.168.1.105:5500'
 
     // chatApiBaseUrl: 'chat-api/api.php'
-    chatApiBaseUrl: 'http://localhost:8000/chat-api/api.php',
+    // chatApiBaseUrl: 'http://localhost:8000/chat-api/api.php',
+    chatApiBaseUrl: 'https://lucuma-api.lucumainnovations.workers.dev/chat-api/api.php',
     backendApiBaseUrl: 'http://localhost:4000/api'
 };
