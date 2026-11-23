@@ -89,13 +89,53 @@ async function storage(request, env, user) {
   fail('Method not allowed.',405);
 }
 
+
+// Private Railway -> D1 bridge. Only mail tables are accessible.
+async function internalMailDb(request, env) {
+  const expected = env.MAIL_DB_INTERNAL_TOKEN || '';
+  const supplied = request.headers.get('x-internal-token') || '';
+  if (!expected || supplied.length !== expected.length) fail('Unauthorized.', 401);
+  const a = new TextEncoder().encode(supplied);
+  const b = new TextEncoder().encode(expected);
+  let diff = 0; for (let i = 0; i < a.length; i++) diff |= a[i] ^ b[i];
+  if (diff !== 0) fail('Unauthorized.', 401);
+  if (request.method !== 'POST') fail('Method not allowed.', 405);
+  const body = await request.json();
+  const sql = String(body.sql || '').trim();
+  const params = Array.isArray(body.params) ? body.params : [];
+  if (!sql || sql.length > 8000 || /;|--|\/\*|\*\//.test(sql)) fail('Invalid query.', 400);
+  const normalized = sql.replace(/\s+/g, ' ').trim();
+  const tableMatches = [...normalized.matchAll(/\b(?:FROM|JOIN|INTO|UPDATE)\s+([a-z_][a-z0-9_]*)/ig)].map(m => m[1].toLowerCase());
+  if (!tableMatches.length || tableMatches.some(t => !['mail_accounts','mail_items'].includes(t))) fail('Only mail tables are available.', 403);
+  if (!/^(SELECT|INSERT|UPDATE|DELETE)\b/i.test(normalized)) fail('Query type not allowed.', 403);
+  if (/\b(ATTACH|DETACH|PRAGMA|DROP|ALTER|CREATE|REPLACE|VACUUM|TRIGGER|VIEW)\b/i.test(normalized)) fail('Query operation not allowed.', 403);
+  const stmt = env.DB.prepare(sql).bind(...params);
+  if (/^\s*SELECT\b/i.test(sql)) {
+    const result = await stmt.all();
+    return { rows: result.results || [], meta: result.meta || {} };
+  }
+  const result = await stmt.run();
+  return { rows: [], meta: result.meta || {} };
+}
+
 export default {
   async fetch(request, env) {
     const origin=request.headers.get('Origin')||''; const allowed=(env.ALLOWED_ORIGINS||'https://docs.lucumainnovations.com,http://localhost:5500,http://localhost:5173').split(',').map(x=>x.trim());
-    if(request.method==='OPTIONS') return new Response(null,{status:204,headers:{'access-control-allow-origin':allowed.includes(origin)?origin:'null','access-control-allow-methods':'GET,POST,OPTIONS','access-control-allow-headers':'Authorization,Content-Type','access-control-max-age':'86400','vary':'Origin'}});
+    if(request.method==='OPTIONS') return new Response(null,{status:204,headers:{'access-control-allow-origin':allowed.includes(origin)?origin:'null','access-control-allow-methods':'GET,POST,OPTIONS','access-control-allow-headers':'Authorization,Content-Type,x-internal-token','access-control-max-age':'86400','vary':'Origin'}});
     if(origin&&!allowed.includes(origin)) return json({error:'Origin not allowed.'},403,'null');
     try {
-      if(new URL(request.url).pathname==='/health') return json({ok:true,service:'lucuma-api',database:!!env.DB,storage:!!env.LUCUMA_STORAGE},200,origin||'*');
+      const pathname = new URL(request.url).pathname.replace(/\/+$/, '') || '/';
+
+      if (pathname === '/health' && request.method === 'GET') {
+        return json({ ok: true, service: 'lucuma-api', database: !!env.DB, storage: !!env.LUCUMA_STORAGE }, 200, origin || '*');
+      }
+
+      // Private Railway -> D1 route. Dispatch BEFORE Supabase browser authentication.
+      // Railway authenticates this route with x-internal-token.
+      if (pathname === '/internal/mail-db') {
+        return json(await internalMailDb(request, env), 200, origin || '*');
+      }
+
       const user=await authenticate(request,env);
       if(new URL(request.url).pathname==='/chat-api' && request.method==='POST') return json(await chat(request,env,user),200,origin||'*');
       if(new URL(request.url).pathname.startsWith('/storage/')) { const result=await storage(request,env,user); if(result instanceof Response) return result; return json(result,200,origin||'*'); }
