@@ -1,0 +1,15 @@
+name = "lucuma-api"
+main = "src/index.js"
+compatibility_date = "2026-11-23"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "lucuma-docs-prod"
+database_id = "08ca2095-e2d6-4c99-8c55-997ed455325a"
+
+[[r2_buckets]]
+binding = "LUCUMA_STORAGE"
+bucket_name = "lucuma-docs-storage"
+
+[vars]
+ALLOWED_ORIGINS = "https://docs.lucumainnovations.com,http://localhost:5500,http://localhost:5173"
