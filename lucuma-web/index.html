@@ -9,6 +9,35 @@ content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inli
   <title>Lucuma Docs</title>
   <link rel="stylesheet" href="fonts.css">
   <link rel="stylesheet" href="styles.css?v=20261122-all10-features-v1">
+<style>
+
+/* Compact grouped navigation */
+#nav{min-height:58px!important;padding:8px 16px!important;gap:5px!important;display:flex;align-items:center;flex-wrap:nowrap!important}
+#nav>b{margin-right:12px!important;white-space:nowrap}
+#nav button,#nav .co-nav-link{padding:8px 10px!important;font-size:12px!important;white-space:nowrap}
+.nav-group{position:relative;display:inline-flex;align-items:center}
+.nav-group-trigger{border:0;background:transparent;color:inherit;cursor:pointer;border-radius:9px}
+.nav-group-menu{display:none;position:absolute;top:calc(100% + 8px);left:0;min-width:190px;padding:8px;background:#14243b;border:1px solid #ffffff24;border-radius:13px;box-shadow:0 18px 38px #0004;z-index:1000}
+.nav-group-menu a,.nav-group-menu button{display:flex;width:100%;padding:10px 12px!important;color:#eef3ff!important;text-decoration:none;background:transparent;border:0;text-align:left;border-radius:8px;cursor:pointer}
+.nav-group-menu a:hover,.nav-group-menu button:hover{background:#ffffff15!important}
+.nav-group:hover .nav-group-menu,.nav-group:focus-within .nav-group-menu,.nav-group.nav-open .nav-group-menu{display:block}
+#nav #who{margin-left:auto;white-space:nowrap;font-size:11px}
+#nav .nav-mobile-toggle{display:none!important}
+/* Remove the duplicate outer icon framing: each statistic has one clean icon tile */
+#dashStats .stat-card .stat-icon{box-shadow:none!important;outline:none!important;border:0!important;width:38px!important;height:38px!important;top:16px!important;right:16px!important;border-radius:11px!important}
+#dashStats .stat-card .stat-icon::before,#dashStats .stat-card .stat-icon::after{content:none!important;display:none!important}
+@media(max-width:1100px){
+ #nav{flex-wrap:wrap!important;min-height:58px!important}
+ #nav .nav-mobile-toggle{display:inline-flex!important;align-items:center;justify-content:center;width:40px;height:40px!important;border:1px solid #ffffff35!important;border-radius:10px!important;background:#ffffff12!important;font-size:20px!important;order:1;cursor:pointer}
+ #nav>*:not(b):not(.nav-mobile-toggle){display:none!important}
+ #nav.nav-mobile-open>*:not(b):not(.nav-mobile-toggle){display:flex!important;flex:1 1 100%!important;width:100%!important;order:2!important;justify-content:flex-start!important}
+ #nav.nav-mobile-open .nav-group{display:flex!important}
+ #nav.nav-mobile-open .nav-group-menu{position:static;box-shadow:none;margin-top:5px;min-width:100%;}
+ #nav.nav-mobile-open #who{order:3!important;margin-left:0!important}
+ #nav.nav-mobile-open #out{order:4!important}
+}
+@media(max-width:760px){#dashboard{padding:12px!important}#dashStats{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}}
+</style>
 </head>
 
 <body data-role="member">
@@ -104,19 +133,20 @@ content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inli
 
   <div class="top" id="nav">
     <b>LUCUMA DOCS</b>
-
+    <button class="nav-mobile-toggle" type="button" aria-expanded="false" aria-label="Open navigation">☰</button>
     <button data-m="dashboard">Dashboard</button>
-    <button data-m="letter">Letters</button>
-    <button data-m="cert">Certificate</button>
-    <button data-m="invoice">Invoice</button>
-    <button data-m="hist">History</button>
-    <a class="co-nav-link" href="collaboration.html">Tasks & Connect</a>
-    <a class="co-nav-link" href="mail.html">Lucuma Mail</a>
-    <button data-m="team" class="core">Team</button>
+    <div class="nav-group"><button class="nav-group-trigger" type="button">Documents ▾</button><div class="nav-group-menu">
+      <button data-m="letter">Letters</button><button data-m="cert">Certificates</button><button data-m="invoice">Invoices</button><button data-m="hist">History</button>
+      <a href="document.html">Document Viewer</a><a href="verify.html">Verify Document</a><a href="qr.html">QR Tools</a>
+    </div></div>
+    <div class="nav-group"><button class="nav-group-trigger" type="button">Workspace ▾</button><div class="nav-group-menu">
+      <a href="workspace.html">Company Workspace</a><a href="collaboration.html">Tasks & Connect</a><button data-m="team" class="core">Team Admin</button>
+    </div></div>
+    <div class="nav-group"><button class="nav-group-trigger" type="button">Communication ▾</button><div class="nav-group-menu">
+      <a href="mail.html">Lucuma Mail</a><a href="collaboration.html">Chat & Tasks</a>
+    </div></div>
     <button data-m="set" class="core">Settings</button>
-
-    <span id="who"></span>
-    <button id="out">Sign out</button>
+    <span id="who"></span><button id="out">Sign out</button>
   </div>
 
   <section id="dashboard" class="wrap dashboard" hidden>
