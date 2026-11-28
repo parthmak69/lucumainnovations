@@ -188,7 +188,6 @@ async function boot(){
   document.querySelector('[data-m=team]').hidden=!isManager();
   document.querySelector('[data-m=set]').hidden=!canAdmin();
   if($('teamAdminLink')) $('teamAdminLink').hidden=!canAdmin();
-  go('dashboard');
   await audit('login','auth',ME.id,{email:ME.email});
  }catch(e){
   $('lm').textContent=e.message;

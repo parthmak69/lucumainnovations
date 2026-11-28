@@ -1,0 +1,22 @@
+import {db,empName,empOpts} from '../core/db.js';
+import {crudPage} from '../core/crud.js';
+import {ctx} from '../core/ctx.js';
+import {can} from '../core/rbac.js';
+import {esc,ago,tISO,nextNo} from '../core/util.js';
+import {badge,prio,toast,formDialog} from '../core/ui.js';
+import {who} from '../core/cells.js';
+const CATS=['IT','Hardware','Software','HR','Finance','Administration','General'],ST=['Open','In Progress','Waiting','Escalated','Resolved','Closed'];
+const sla=t=>{const h=(Date.now()-new Date(t.created))/36e5,left=t.sla-h,done=['Resolved','Closed'].includes(t.status);return done?`<span class="badge b-ok">Met</span>`:left<0?`<span class="badge b-bad">Breached ${Math.abs(Math.round(left))}h</span>`:`<span class="badge ${left<4?'b-warn':'b-info'}">${Math.round(left)}h left</span>`};
+export default function(host,{id}){
+ const c=crudPage(host,{title:'Support desk',eyebrow:'Business',subtitle:'Internal IT, HR, finance and facilities requests with SLA tracking and escalation.',store:db.tickets,perm:'support',singular:'Ticket',newLabel:'New ticket',logModule:'Support',
+  scope:(t,me)=>t.by===me.id||t.assignee===me.id,scopeUnless:'manage',
+  columns:[{key:'title',label:'Ticket',render:t=>`<b>${esc(t.title)}</b><br><small class="mut">${esc(t.id)} · ${esc(t.category)}</small>`},{key:'by',label:'Raised by',render:t=>who(t.by,{sub:false,size:26}),sortBy:t=>empName(t.by),csv:t=>empName(t.by)},{key:'assignee',label:'Assignee',render:t=>t.assignee?who(t.assignee,{sub:false,size:26}):'<span class="dim">Unassigned</span>',csv:t=>empName(t.assignee)},{key:'priority',label:'Priority',render:t=>prio(t.priority)},{key:'sla',label:'SLA',render:sla,sort:false,csv:false},{key:'created',label:'Opened',render:t=>ago(t.created)},{key:'status',label:'Status',render:t=>badge(t.status)}],
+  fields:[{name:'title',label:'Subject',required:true,span:2},{name:'category',label:'Category',type:'select',options:CATS},{name:'priority',label:'Priority',type:'select',options:['Critical','High','Medium','Low']},{name:'assignee',label:'Assign to',type:'select',blank:true,options:()=>empOpts(e=>e.dept==='IT & Support'||['HR','Finance'].includes(e.dept)||e.id==='EMP-0003')},{name:'status',label:'Status',type:'select',options:ST},{name:'desc',label:'Description',type:'textarea',rows:4,required:true,span:2},{name:'attach',label:'Attachment',type:'file',span:2}],
+  defaults:()=>({category:'IT',priority:'Medium',status:'Open'}),
+  beforeSave:(t,n)=>{if(n){t.by=ctx.me.id;t.created=tISO();t.sla=t.priority==='Critical'?4:t.priority==='High'?8:t.priority==='Medium'?24:72;t.assignee=t.assignee||''}return t},
+  filters:[{key:'status',label:'Status',options:ST},{key:'category',label:'Category',options:CATS},{key:'priority',label:'Priority',options:['Critical','High','Medium','Low']}],search:['title','id','desc','category'],sort:'created',dir:-1,statusField:'status',statuses:ST,assignField:'assignee',assignOptions:()=>empOpts(),
+  stats:rs=>[{label:'Open',value:rs.filter(t=>['Open','In Progress','Waiting'].includes(t.status)).length,icon:'ticket'},{label:'Escalated',value:rs.filter(t=>t.status==='Escalated').length,icon:'alert',tone:'dn'},{label:'Resolved this week',value:rs.filter(t=>t.status==='Resolved').length,icon:'check-c'},{label:'SLA breaches',value:rs.filter(t=>!['Resolved','Closed'].includes(t.status)&&(Date.now()-new Date(t.created))/36e5>t.sla).length,icon:'clock',tone:'dn'}],
+  drawerActions:t=>can('support','edit')&&!['Resolved','Closed'].includes(t.status)?[{label:'Escalate',icon:'alert',cls:'d',run:(t,h)=>{db.tickets.update(t.id,{status:'Escalated',history:[{t:tISO(),by:ctx.me.name,text:'Escalated to management'},...(t.history||[])]});toast('Ticket escalated','warn');h.close();h.refresh()}},{label:'Mark resolved',icon:'check',cls:'ok',run:(t,h)=>formDialog({title:'Resolve ticket',w:'480px',fields:[{name:'note',label:'Resolution notes',type:'textarea',required:true}],submit:'Resolve',onSubmit:v=>{db.tickets.update(t.id,{status:'Resolved',resolution:v.note,history:[{t:tISO(),by:ctx.me.name,text:'Resolved: '+v.note},...(t.history||[])]});toast('Ticket resolved');h.close();h.refresh()}})}]:[],
+  detail:t=>`<div class="card" style="background:var(--g)"><p style="margin:0">${esc(t.desc)}</p>${t.resolution?`<hr class="s"><b>Resolution</b><p style="margin:4px 0 0">${esc(t.resolution)}</p>`:''}<div class="row mt">SLA target ${t.sla}h ${sla(t)}</div></div><hr class="s">`});
+ if(id==='new')c.form();else if(id){const t=db.tickets.get(id);t&&c.open(t)}
+}

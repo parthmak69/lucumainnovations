@@ -1,0 +1,38 @@
+import {db,empName,empOpts,projOpts} from '../core/db.js';
+import {crudPage} from '../core/crud.js';
+import {ctx} from '../core/ctx.js';
+import {can} from '../core/rbac.js';
+import {tabs,badge,toast,formDialog} from '../core/ui.js';
+import {esc,inr,cmp,fmtD,dISO,tISO,nextNo,sum,$,groupBy,MONTHS} from '../core/util.js';
+import {who} from '../core/cells.js';
+import {line,bars,donut,hbars,ring} from '../core/charts.js';
+import {ic} from '../core/icons.js';
+const CATS=['Software','Hardware','Travel','Marketing','Operations','Office','Employee','Infrastructure'],ST=['Draft','Submitted','Pending Approval','Approved','Rejected','Reimbursed'];
+const BUDGET={Software:60000,Hardware:90000,Travel:40000,Marketing:60000,Operations:30000,Office:20000,Employee:35000,Infrastructure:25000};
+export default function(host,{args}){
+ host.innerHTML=`<div class="ph"><div><div class="eyebrow">Business</div><h1>Finance</h1><p>Revenue, expenses, cash flow and budget performance.</p></div></div><div id="tb"></div><div id="tc" class="col"></div>`;
+ const body=$('#tc',host);
+ const dash=()=>{
+  const inv=db.invoices.all().filter(i=>i.kind==='Invoice'),ex=db.expenses.all().filter(e=>e.status!=='Rejected'&&e.status!=='Draft'),rev=sum(inv,i=>i.paid),out=sum(inv.filter(i=>!['Paid','Cancelled','Draft'].includes(i.status)),i=>i.total-i.paid),exp=sum(ex,e=>e.amount);
+  const now=new Date().getMonth(),labels=[...Array(8)].map((_,i)=>MONTHS[(now-7+i+12)%12]),R=[820,960,740,1180,1020,1350,1210,1490].map(x=>x*1000),E=[510,560,480,640,590,720,690,810].map(x=>x*1000),cf=R.map((r,i)=>r-E[i]);
+  const byCat=groupBy(ex,'category'),spent=c=>sum(byCat[c]||[],e=>e.amount);
+  body.innerHTML=`<div class="stats">${[['Revenue collected',cmp(rev),'trending'],['Expenses',cmp(exp),'wallet'],['Outstanding payments',cmp(out),'clock'],['Paid invoices',inv.filter(i=>i.status==='Paid').length,'check-c'],['Pending invoices',inv.filter(i=>['Sent','Pending','Partially Paid','Overdue'].includes(i.status)).length,'receipt'],['Net position',cmp(rev-exp),'dollar']].map(([l,v,i])=>`<div class="stat"><span class="ic big">${ic(i,30)}</span><small>${l}</small><b>${v}</b></div>`).join('')}</div>
+  <div class="g2"><div class="card"><div class="hd"><h3>Revenue vs expenses</h3></div>${line({labels,series:[{name:'Revenue',data:R},{name:'Expenses',data:E,color:'#fb7185'}],fmt:v=>cmp(v)})}</div><div class="card"><div class="hd"><h3>Cash-flow overview</h3></div>${bars({labels,series:[{name:'Net cash flow',data:cf,color:'#4ade80'}],fmt:v=>cmp(v)})}</div></div>
+  <div class="g2"><div class="card"><div class="hd"><h3>Budget performance</h3></div>${CATS.map(c=>{const p=Math.round(spent(c)/BUDGET[c]*100);return`<div style="margin:10px 0"><div class="row sp-b"><span>${c}</span><small>${inr(spent(c))} / ${inr(BUDGET[c])}</small></div><div class="progress"><i style="width:${Math.min(100,p)}%;${p>100?'background:var(--bad)':p>80?'background:var(--warn)':''}"></i></div></div>`}).join('')}</div><div class="card"><div class="hd"><h3>Expenses by category</h3></div>${donut({items:CATS.map(c=>({label:c,value:spent(c)})).filter(x=>x.value),center:cmp(exp),sub:'total',fmt:inr})}</div></div>`;
+ };
+ const exp=()=>{const c=crudPage(body,{title:'Expenses',singular:'Expense',newLabel:'Submit expense',store:db.expenses,perm:'finance',logModule:'Finance',scope:(e,me)=>e.by===me.id,scopeUnless:'approve',
+  columns:[{key:'title',label:'Expense',render:e=>`<b>${esc(e.title)}</b><br><small class="mut">${esc(e.id)} · ${esc(e.category)}</small>`},{key:'by',label:'Submitted by',render:e=>who(e.by,{sub:false,size:26}),csv:e=>empName(e.by),sortBy:e=>empName(e.by)},{key:'date',label:'Date',render:e=>fmtD(e.date)},{key:'amount',label:'Amount',render:e=>`<b>${inr(e.amount)}</b>`,cls:'nowrap'},{key:'receipt',label:'Receipt',render:e=>e.receipt?`<span class="chip">${ic('paperclip')}${esc(e.receipt)}</span>`:'<span class="dim">None</span>'},{key:'status',label:'Status',render:e=>badge(e.status)}],
+  fields:[{name:'title',label:'Description',required:true,span:2},{name:'category',label:'Category',type:'select',options:CATS},{name:'amount',label:'Amount (₹)',type:'number',min:1,required:true},{name:'date',label:'Expense date',type:'date',required:true,validate:v=>v>dISO()?'Date cannot be in the future':''},{name:'project',label:'Project (optional)',type:'select',blank:true,options:projOpts},{name:'status',label:'Status',type:'select',options:['Draft','Submitted']},{name:'receipt',label:'Receipt',type:'file',accept:'image/*,.pdf',help:'Required for claims above ₹500',span:2},{name:'desc',label:'Notes',type:'textarea',span:2}],
+  defaults:()=>({category:'Operations',status:'Submitted',date:dISO()}),
+  beforeSave:(e,n)=>{if(e.amount>500&&!e.receipt&&e.status!=='Draft'){toast('Attach a receipt for claims above ₹500, or save as Draft','warn');return false}if(n){e.id=nextNo(db.expenses.all(),'EXP-','id',4).replace('EXP-0','EXP-3');e.by=ctx.me.id}return e},
+  afterSave:(e,n)=>{if(n&&e.status==='Submitted'){db.approvals.add({id:'APR-'+e.id,type:'Expense',title:`${e.title} — ${inr(e.amount)}`,requester:e.by,approver:'EMP-0005',stage:'Finance review',priority:'Medium',status:'Pending Approval',ref:e.id,date:dISO(),stages:['Submitted','Finance review','Done'],comments:[],history:[{t:tISO(),by:ctx.me.name,text:'Request submitted'}]});db.expenses.update(e.id,{status:'Pending Approval'})}},
+  filters:[{key:'status',label:'Status',options:ST},{key:'category',label:'Category',options:CATS}],search:['title','id','category',e=>empName(e.by)],sort:'date',dir:-1,statusField:'status',statuses:ST,
+  approve:{from:['Submitted','Pending Approval'],approve:'Approved',reject:'Rejected'},canEdit:e=>['Draft','Rejected'].includes(e.status)||can('finance','manage'),
+  stats:rs=>[{label:'Total claimed',value:inr(sum(rs,e=>e.amount)),icon:'wallet'},{label:'Awaiting approval',value:rs.filter(e=>['Submitted','Pending Approval'].includes(e.status)).length,icon:'clock'},{label:'To reimburse',value:inr(sum(rs.filter(e=>e.status==='Approved'),e=>e.amount)),icon:'dollar'},{label:'Reimbursed',value:inr(sum(rs.filter(e=>e.status==='Reimbursed'),e=>e.amount)),icon:'check-c'}],
+  drawerActions:e=>e.status==='Approved'&&can('finance','approve')?[{label:'Mark reimbursed',icon:'dollar',cls:'ok',run:(e,h)=>{db.expenses.update(e.id,{status:'Reimbursed',history:[{t:tISO(),by:ctx.me.name,text:'Reimbursed'},...(e.history||[])]});toast('Marked as reimbursed');h.close();h.refresh()}}]:[]});
+  if(args[0]==='new')setTimeout(()=>document.querySelector('[data-new]')?.click(),50)};
+ const rep=()=>{const ex=db.expenses.all(),g=groupBy(ex,'category');body.innerHTML=`<div class="card"><div class="hd"><h3>Expense report</h3><div class="sp"><button class="btn sm" id="ex">${ic('download')}Export CSV</button></div></div><div class="tw"><table class="tbl"><thead><tr><th>Category</th><th>Claims</th><th>Total</th><th>Approved</th><th>Budget</th><th>Utilisation</th></tr></thead><tbody>${CATS.map(c=>{const l=g[c]||[],t=sum(l,e=>e.amount),a=sum(l.filter(e=>['Approved','Reimbursed'].includes(e.status)),e=>e.amount);return`<tr><td>${c}</td><td>${l.length}</td><td>${inr(t)}</td><td>${inr(a)}</td><td>${inr(BUDGET[c])}</td><td>${Math.round(t/BUDGET[c]*100)}%</td></tr>`}).join('')}</tbody></table></div></div>`;$('#ex',body).onclick=()=>toast('Report exported (simulated)')};
+ const T={dash,exp,rep};
+ const t=tabs($('#tb',host),[['dash','Dashboard','chart'],['exp','Expenses','wallet'],['rep','Reports','file']],{cur:args[0]==='new'||args[0]==='expenses'?'exp':'dash',onChange:k=>{body.onclick=null;T[k]()}});
+ T[args[0]==='new'||args[0]==='expenses'?'exp':'dash']();
+}

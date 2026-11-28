@@ -1,0 +1,25 @@
+import {db,empName,empOpts} from '../core/db.js';
+import {crudPage} from '../core/crud.js';
+import {ctx} from '../core/ctx.js';
+import {can} from '../core/rbac.js';
+import {esc,fmtD,tISO,fmtDT} from '../core/util.js';
+import {badge,prio,formDialog,toast} from '../core/ui.js';
+import {who} from '../core/cells.js';
+import {syncSource,TYPE_MOD} from '../core/approval.js';
+const TYPES=['Document','Expense','Leave','Purchase','Invoice','Project','HR','Administrative'];
+export default function(host){
+ const stages=r=>`<h4 style="margin-bottom:10px">Approval stages</h4><div class="tl">${(r.stages||[]).map((s,i,a)=>{const cur=a.indexOf(r.stage),st=r.status==='Approved'||i<cur?'ok':s===r.stage?(r.status==='Rejected'?'bad':''):'wait';return`<div class="${st}"><b>${esc(s)}</b>${s===r.stage&&r.status!=='Approved'?`<br><small class="mut">Current stage · approver ${esc(empName(r.approver))}</small>`:''}</div>`}).join('')}</div>`;
+ const own=r=>can(TYPE_MOD[r.type]||'administration','approve');
+ crudPage(host,{title:'Approvals',singular:'Approval request',eyebrow:'Documents',subtitle:'Every request awaiting a decision — documents, expenses, leave, purchases, invoices, projects and HR.',store:db.approvals,perm:'dashboard',
+  columns:[{key:'title',label:'Request',render:r=>`<b>${esc(r.title)}</b><br><small class="mut">${esc(r.id)}</small>`},{key:'type',label:'Type',render:r=>`<span class="chip">${r.type}</span>`},{key:'requester',label:'Requester',render:r=>who(r.requester,{sub:false,size:26}),csv:r=>empName(r.requester),sortBy:r=>empName(r.requester)},{key:'date',label:'Requested',render:r=>fmtD(r.date)},{key:'approver',label:'Approver',render:r=>who(r.approver,{sub:false,size:26}),csv:r=>empName(r.approver),sortBy:r=>empName(r.approver)},{key:'stage',label:'Stage'},{key:'priority',label:'Priority',render:r=>prio(r.priority)},{key:'status',label:'Status',render:r=>badge(r.status)}],
+  fields:[{name:'type',label:'Request type',type:'select',options:TYPES,required:true},{name:'title',label:'Title',required:true,span:2},{name:'requester',label:'Requester',type:'select',options:()=>empOpts(),required:true},{name:'approver',label:'Approver',type:'select',options:()=>empOpts(),required:true},{name:'priority',label:'Priority',type:'select',options:['Critical','High','Medium','Low']},{name:'ref',label:'Linked record ID',help:'e.g. EXP-3006, PR-0041, DOC-1003'}],
+  defaults:()=>({type:'Document',priority:'Medium',requester:ctx.me.id,approver:'EMP-0002'}),
+  beforeSave:(r,isNew)=>{if(isNew){r.status='Pending Approval';r.date=tISO().slice(0,10);r.stage='Manager review';r.stages=['Submitted','Manager review','Done']}return r},
+  filters:[{key:'type',label:'Type',options:TYPES},{key:'status',label:'Status',options:['Pending Approval','Approved','Rejected']},{key:'priority',label:'Priority',options:['Critical','High','Medium','Low']}],
+  search:['title','type','id',r=>empName(r.requester)],statusField:'status',statuses:['Pending Approval','Approved','Rejected'],sort:'date',dir:-1,
+  approve:{from:['Pending Approval'],approve:'Approved',reject:'Rejected'},onStatus:(r,s)=>syncSource(r,s),
+  stats:rs=>[{label:'Waiting for decision',value:rs.filter(a=>a.status==='Pending Approval').length,icon:'clock'},{label:'Approved',value:rs.filter(a=>a.status==='Approved').length,icon:'check-c'},{label:'Rejected',value:rs.filter(a=>a.status==='Rejected').length,icon:'x'},{label:'High priority open',value:rs.filter(a=>a.status==='Pending Approval'&&['High','Critical'].includes(a.priority)).length,icon:'flag'}],
+  canApprove:r=>own(r),canEdit:r=>own(r),canDelete:()=>can('administration','delete'),
+  detail:r=>`<div class="card" style="background:var(--g)">${stages(r)}</div><hr class="s">`,
+  drawerActions:r=>r.status==='Pending Approval'&&own(r)?[{label:'Request modifications',icon:'edit',run:(r,h)=>formDialog({title:'Request modifications',w:'480px',fields:[{name:'note',label:'What needs to change?',type:'textarea',required:true}],submit:'Send back',onSubmit:v=>{const x=db.approvals.get(r.id);db.approvals.update(r.id,{stage:'Revision',history:[{t:tISO(),by:ctx.me.name,text:'Modifications requested: '+v.note},...(x.history||[])]});toast('Sent back to requester','warn');h.close();h.refresh()}})},{label:'Forward',icon:'arrow',run:(r,h)=>formDialog({title:'Forward approval',w:'460px',fields:[{name:'approver',label:'Forward to',type:'select',options:()=>empOpts(),required:true},{name:'note',label:'Note',type:'textarea'}],submit:'Forward',onSubmit:v=>{const x=db.approvals.get(r.id);db.approvals.update(r.id,{approver:v.approver,history:[{t:tISO(),by:ctx.me.name,text:`Forwarded to ${empName(v.approver)}${v.note?': '+v.note:''}`},...(x.history||[])]});toast('Forwarded to '+empName(v.approver));h.close();h.refresh()}})},{label:'Assign approver',icon:'user',run:(r,h)=>formDialog({title:'Assign approver',w:'440px',fields:[{name:'approver',label:'Approver',type:'select',options:()=>empOpts(),value:r.approver}],values:{approver:r.approver},onSubmit:v=>{db.approvals.update(r.id,{approver:v.approver});toast('Approver assigned');h.close();h.refresh()}})}]:[]});
+}
